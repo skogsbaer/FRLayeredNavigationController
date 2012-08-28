@@ -70,7 +70,8 @@
 @property (nonatomic, readwrite, strong) UIView *titleView;
 
 /**
- * The layer's width in points.
+ * The layer's width in points. If the item's layer controller has `maximumWidth == YES`, then the property
+ * defines the minimum width of the layer.
  */
 @property (nonatomic, readwrite) CGFloat width;
 

@@ -42,7 +42,7 @@
 typedef enum {
     SnappingPointsMethodNearest,
     SnappingPointsMethodCompact,
-    SnappingPointsMehtodExpand
+    SnappingPointsMethodExpand
 } SnappingPointsMethod;
 
 @interface FRLayeredNavigationController ()
@@ -259,7 +259,7 @@ typedef enum {
 {
     BOOL didMoveOutOfBounds = NO;
     const FRLayeredNavigationItem *navItem = vc.layeredNavigationItem;
-    const CGPoint initPos = navItem.initialViewPosition;
+    const CGPoint initPos = navItem.initialViewPosition; // use leftmost initial view position
 
     if (bounded) {
         /* apply translation to fancy item position first and then apply to view */
@@ -303,6 +303,7 @@ typedef enum {
 
     for (FRLayerController *lvc in self.layeredViewControllers) {
         if (lvc.layeredNavigationItem.currentViewPosition.x > lvc.layeredNavigationItem.initialViewPosition.x) {
+            // use leftmost initial view position
             maximalCompression = NO;
         }
     }
@@ -339,7 +340,7 @@ typedef enum {
                     xTranslation = initDiff - curDiff;
                     break;
                 }
-                case SnappingPointsMehtodExpand: {
+                case SnappingPointsMethodExpand: {
                     xTranslation = maxDiff - curDiff;
                     break;
                 }
@@ -357,7 +358,7 @@ typedef enum {
 
     if (abs(velocity) > FRLayeredNavigationControllerSnappingVelocityThreshold) {
         if (velocity > 0) {
-            method = SnappingPointsMehtodExpand;
+            method = SnappingPointsMethodExpand;
         } else {
             method = SnappingPointsMethodCompact;
         }

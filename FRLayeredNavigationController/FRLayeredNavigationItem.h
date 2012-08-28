@@ -32,6 +32,18 @@
 
 @class FRLayerController;
 
+#define FRLayerSnappingPointDefaultPriority 0
+#define FRLayeredNavigationItemNoDistance (-1)
+
+@interface FRLayerSnappingPoint : NSObject {
+    @private
+    CGFloat _x;
+    NSInteger _priority;
+}
+@property (nonatomic, readonly) CGFloat x;
+@property (nonatomic, readonly) NSInteger priority;
+@end
+
 /**
  * FRLayeredNavigationItem is used to configure one view controller layer. It is very similar to UINavigationItem .
  *
@@ -46,16 +58,18 @@
     CGFloat _nextItemDistance;
     BOOL _hasChrome;
     BOOL _displayShadow;
+    NSMutableSet *_internalSnappingPoints;
     FRLayerController __weak * _layerController;
 }
 
 /**
  * The view position when the layers are compacted maximally.
+ * Managed by internaly by FRLayeredNavigationController.
  */
 @property (nonatomic, readonly) CGPoint initialViewPosition;
 
 /**
- * The current view position.
+ * The current view position. Managed by internaly by FRLayeredNavigationController.
  */
 @property (nonatomic, readonly) CGPoint currentViewPosition;
 
@@ -74,6 +88,11 @@
  * defines the minimum width of the layer.
  */
 @property (nonatomic, readwrite) CGFloat width;
+
+/**
+ * The layer's current width in points. Managed by internaly by FRLayeredNavigationController.
+ */
+@property (nonatomic, readonly) CGFloat currentWidth;
 
 /**
  * The minimal distance (when the child layer is as far on the left as possible) to the next layer in points.
@@ -99,5 +118,8 @@
  * A custom bar button item displayed on the right of the navigation bar.
  */
 @property (nonatomic, strong) UIBarButtonItem *rightBarButtonItem;
+
+- (void)addSnappingPointX:(CGFloat)x priority:(NSInteger)priority;
+- (NSSet *)snappingPoints;
 
 @end

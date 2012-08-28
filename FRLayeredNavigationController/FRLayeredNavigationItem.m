@@ -31,11 +31,31 @@
 #import "FRLayerController.h"
 #import "FRLayerChromeView.h"
 
+@interface FRLayerSnappingPoint ()
+- (id)initWithX:(CGFloat)x priority:(NSInteger)priority;
+@end
+
+@implementation FRLayerSnappingPoint
+
+- (id)initWithX:(CGFloat)x priority:(NSInteger)priority {
+    if ((self = [super init])) {
+        self->_x = x;
+        self->_priority = priority;
+    }
+    return self;
+}
+
+@synthesize x = _x;
+@synthesize priority = _priority;
+@end
+
 @interface FRLayeredNavigationItem ()
 
 @property (nonatomic, readwrite, weak) FRLayerController *layerController;
 @property (nonatomic, readwrite) CGPoint initialViewPosition;
 @property (nonatomic, readwrite) CGPoint currentViewPosition;
+@property (nonatomic, readwrite) CGFloat currentWidth;
+@property (nonatomic, readwrite) NSMutableSet *internalSnappingPoints;
 
 @end
 
@@ -48,6 +68,7 @@
         self->_nextItemDistance = -1;
         self->_hasChrome = YES;
         self->_displayShadow = YES;
+        self.internalSnappingPoints = [NSMutableSet set];
     }
 
     return self;
@@ -73,6 +94,23 @@
     return self.layerController.chromeView.rightBarButtonItem;
 }
 
+- (void)addSnappingPointX:(CGFloat)x priority:(NSInteger)priority
+{
+    FRLayerSnappingPoint *p = [[FRLayerSnappingPoint alloc] initWithX:x
+                                                             priority:priority];
+    [self.internalSnappingPoints addObject:p];
+}
+
+- (NSSet *)snappingPoints
+{
+    NSMutableSet *set = [self.internalSnappingPoints copy];
+    if (self.nextItemDistance < 0) {
+        FRLayerSnappingPoint *p = [[FRLayerSnappingPoint alloc] initWithX:self.nextItemDistance
+                                                                 priority:FRLayerSnappingPointDefaultPriority];
+        [set addObject:p];
+    }
+    return set;
+}
 
 @synthesize initialViewPosition = _initialViewPosition;
 @synthesize currentViewPosition = _currentViewPosition;
@@ -83,5 +121,6 @@
 @synthesize hasChrome = _hasChrome;
 @synthesize displayShadow = _displayShadow;
 @synthesize layerController = _layerController;
+@synthesize internalSnappingPoints = _internalSnappingPoints;
 
 @end

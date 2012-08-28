@@ -35,5 +35,5 @@
 @property (nonatomic, readwrite, weak) FRLayerController *layerController;
 @property (nonatomic, readwrite) CGPoint initialViewPosition;
 @property (nonatomic, readwrite) CGPoint currentViewPosition;
-
+@property (nonatomic, readwrite) CGFloat currentWidth;
 @end

@@ -7,6 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5231DF6015ECB2BF00A22651 /* FRLayerModel.h in Headers */ = {isa = PBXBuildFile; fileRef = 5231DF5E15ECB2BE00A22651 /* FRLayerModel.h */; };
+		5231DF6115ECB2BF00A22651 /* FRLayerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5231DF5F15ECB2BE00A22651 /* FRLayerModel.m */; };
+		5231DF6A15ECB45500A22651 /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5231DF6915ECB45500A22651 /* SenTestingKit.framework */; };
+		5231DF6B15ECB45500A22651 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA4FAD0415591BD500D85A7E /* UIKit.framework */; };
+		5231DF6C15ECB45500A22651 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA4FACC915591AB300D85A7E /* Foundation.framework */; };
+		5231DF7215ECB45500A22651 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 5231DF7015ECB45500A22651 /* InfoPlist.strings */; };
+		5231DF7515ECB45500A22651 /* FRLayeredLogicTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5231DF7415ECB45500A22651 /* FRLayeredLogicTests.m */; };
+		5231DF7A15ECB60700A22651 /* FRLayerModel.m in Sources */ = {isa = PBXBuildFile; fileRef = 5231DF5F15ECB2BE00A22651 /* FRLayerModel.m */; };
+		5231DF7B15ECB68800A22651 /* FRLayeredNavigationItem.m in Sources */ = {isa = PBXBuildFile; fileRef = DA4FACF115591B6700D85A7E /* FRLayeredNavigationItem.m */; };
+		5231DF7C15ED085F00A22651 /* FRLayerController.m in Sources */ = {isa = PBXBuildFile; fileRef = DA4FACED15591B6700D85A7E /* FRLayerController.m */; };
+		5231DF7D15ED097800A22651 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DA4FAD0715591BD500D85A7E /* CoreGraphics.framework */; };
+		5231DF7E15ED098D00A22651 /* FRLayerChromeView.m in Sources */ = {isa = PBXBuildFile; fileRef = DA4FACEB15591B6700D85A7E /* FRLayerChromeView.m */; };
+		5231DF7F15ED099A00A22651 /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DAAB20AF155D27A700C5CAA5 /* Utils.m */; };
+		5231DF8015ED09A000A22651 /* FRNavigationBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 687661CB15D997BE009DF4A4 /* FRNavigationBar.m */; };
 		52ED6E2615DCC1E900A8FC39 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 52ED6E2515DCC1E900A8FC39 /* MainViewController.m */; };
 		687661CC15D997BE009DF4A4 /* FRNavigationBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 687661CA15D997BE009DF4A4 /* FRNavigationBar.h */; };
 		687661CD15D997BE009DF4A4 /* FRNavigationBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 687661CB15D997BE009DF4A4 /* FRNavigationBar.m */; };
@@ -53,6 +67,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		5231DF5E15ECB2BE00A22651 /* FRLayerModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRLayerModel.h; sourceTree = "<group>"; };
+		5231DF5F15ECB2BE00A22651 /* FRLayerModel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FRLayerModel.m; sourceTree = "<group>"; };
+		5231DF6815ECB45500A22651 /* FRLayeredLogicTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FRLayeredLogicTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5231DF6915ECB45500A22651 /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
+		5231DF6F15ECB45500A22651 /* FRLayeredLogicTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "FRLayeredLogicTests-Info.plist"; sourceTree = "<group>"; };
+		5231DF7115ECB45500A22651 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		5231DF7315ECB45500A22651 /* FRLayeredLogicTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FRLayeredLogicTests.h; sourceTree = "<group>"; };
+		5231DF7415ECB45500A22651 /* FRLayeredLogicTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FRLayeredLogicTests.m; sourceTree = "<group>"; };
+		5231DF7615ECB45500A22651 /* FRLayeredLogicTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FRLayeredLogicTests-Prefix.pch"; sourceTree = "<group>"; };
 		52ED6E2415DCC1E900A8FC39 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		52ED6E2515DCC1E900A8FC39 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		687661CA15D997BE009DF4A4 /* FRNavigationBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRNavigationBar.h; sourceTree = "<group>"; };
@@ -101,6 +124,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5231DF6415ECB45500A22651 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5231DF7D15ED097800A22651 /* CoreGraphics.framework in Frameworks */,
+				5231DF6A15ECB45500A22651 /* SenTestingKit.framework in Frameworks */,
+				5231DF6B15ECB45500A22651 /* UIKit.framework in Frameworks */,
+				5231DF6C15ECB45500A22651 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DA4FACC315591AB300D85A7E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,6 +158,26 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5231DF6D15ECB45500A22651 /* FRLayeredLogicTests */ = {
+			isa = PBXGroup;
+			children = (
+				5231DF7315ECB45500A22651 /* FRLayeredLogicTests.h */,
+				5231DF7415ECB45500A22651 /* FRLayeredLogicTests.m */,
+				5231DF6E15ECB45500A22651 /* Supporting Files */,
+			);
+			path = FRLayeredLogicTests;
+			sourceTree = "<group>";
+		};
+		5231DF6E15ECB45500A22651 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				5231DF6F15ECB45500A22651 /* FRLayeredLogicTests-Info.plist */,
+				5231DF7015ECB45500A22651 /* InfoPlist.strings */,
+				5231DF7615ECB45500A22651 /* FRLayeredLogicTests-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		DA4FACBB15591AB300D85A7E = {
 			isa = PBXGroup;
 			children = (
@@ -134,6 +188,7 @@
 				DA4FAD2A15591C6E00D85A7E /* README.md */,
 				DA4FACCB15591AB300D85A7E /* FRLayeredNavigationController */,
 				DA4FAD0915591BD500D85A7E /* FRLayeredNavigationControllerDemo */,
+				5231DF6D15ECB45500A22651 /* FRLayeredLogicTests */,
 				DA4FACC815591AB300D85A7E /* Frameworks */,
 				DA4FACC715591AB300D85A7E /* Products */,
 				DA6609AF1567FD390033DBFF /* Screenshots */,
@@ -145,6 +200,7 @@
 			children = (
 				DA4FACC615591AB300D85A7E /* libFRLayeredNavigationController.a */,
 				DA4FAD0215591BD500D85A7E /* FRLayeredNavigationControllerDemo.app */,
+				5231DF6815ECB45500A22651 /* FRLayeredLogicTests.octest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -155,6 +211,7 @@
 				DA4FACC915591AB300D85A7E /* Foundation.framework */,
 				DA4FAD0415591BD500D85A7E /* UIKit.framework */,
 				DA4FAD0715591BD500D85A7E /* CoreGraphics.framework */,
+				5231DF6915ECB45500A22651 /* SenTestingKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -181,6 +238,8 @@
 				D98F9C8715C2843E00E1A3FF /* FRDLog.h */,
 				687661CA15D997BE009DF4A4 /* FRNavigationBar.h */,
 				687661CB15D997BE009DF4A4 /* FRNavigationBar.m */,
+				5231DF5E15ECB2BE00A22651 /* FRLayerModel.h */,
+				5231DF5F15ECB2BE00A22651 /* FRLayerModel.m */,
 			);
 			path = FRLayeredNavigationController;
 			sourceTree = "<group>";
@@ -248,12 +307,31 @@
 				DAB8C67E155E8F6A00340CB7 /* FRLayeredNavigationItem+Protected.h in Headers */,
 				DAB8C686155E93E700340CB7 /* FRLayerController+Protected.h in Headers */,
 				687661CC15D997BE009DF4A4 /* FRNavigationBar.h in Headers */,
+				5231DF6015ECB2BF00A22651 /* FRLayerModel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		5231DF6715ECB45500A22651 /* FRLayeredLogicTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5231DF7715ECB45500A22651 /* Build configuration list for PBXNativeTarget "FRLayeredLogicTests" */;
+			buildPhases = (
+				5231DF6315ECB45500A22651 /* Sources */,
+				5231DF6415ECB45500A22651 /* Frameworks */,
+				5231DF6515ECB45500A22651 /* Resources */,
+				5231DF6615ECB45500A22651 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = FRLayeredLogicTests;
+			productName = FRLayeredLogicTests;
+			productReference = 5231DF6815ECB45500A22651 /* FRLayeredLogicTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
 		DA4FACC515591AB300D85A7E /* FRLayeredNavigationController */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DA4FACD315591AB300D85A7E /* Build configuration list for PBXNativeTarget "FRLayeredNavigationController" */;
@@ -311,11 +389,20 @@
 			targets = (
 				DA4FACC515591AB300D85A7E /* FRLayeredNavigationController */,
 				DA4FAD0115591BD500D85A7E /* FRLayeredNavigationControllerDemo */,
+				5231DF6715ECB45500A22651 /* FRLayeredLogicTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5231DF6515ECB45500A22651 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5231DF7215ECB45500A22651 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DA4FAD0015591BD500D85A7E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -330,7 +417,37 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		5231DF6615ECB45500A22651 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		5231DF6315ECB45500A22651 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5231DF7515ECB45500A22651 /* FRLayeredLogicTests.m in Sources */,
+				5231DF7A15ECB60700A22651 /* FRLayerModel.m in Sources */,
+				5231DF7B15ECB68800A22651 /* FRLayeredNavigationItem.m in Sources */,
+				5231DF7C15ED085F00A22651 /* FRLayerController.m in Sources */,
+				5231DF7E15ED098D00A22651 /* FRLayerChromeView.m in Sources */,
+				5231DF7F15ED099A00A22651 /* Utils.m in Sources */,
+				5231DF8015ED09A000A22651 /* FRNavigationBar.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DA4FACC215591AB300D85A7E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -342,6 +459,7 @@
 				DA4FACFB15591B6700D85A7E /* FRLayeredNavigationItem.m in Sources */,
 				DAAB20B1155D27A700C5CAA5 /* Utils.m in Sources */,
 				687661CD15D997BE009DF4A4 /* FRNavigationBar.m in Sources */,
+				5231DF6115ECB2BF00A22651 /* FRLayerModel.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,6 +486,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		5231DF7015ECB45500A22651 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				5231DF7115ECB45500A22651 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
 		DA4FAD0C15591BD500D85A7E /* InfoPlist.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -379,6 +505,40 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		5231DF7815ECB45500A22651 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
+					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FRLayeredLogicTests/FRLayeredLogicTests-Prefix.pch";
+				INFOPLIST_FILE = "FRLayeredLogicTests/FRLayeredLogicTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		5231DF7915ECB45500A22651 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"\"$(SDKROOT)/Developer/Library/Frameworks\"",
+					"\"$(DEVELOPER_LIBRARY_DIR)/Frameworks\"",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FRLayeredLogicTests/FRLayeredLogicTests-Prefix.pch";
+				INFOPLIST_FILE = "FRLayeredLogicTests/FRLayeredLogicTests-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
 		DA4FACD115591AB300D85A7E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -487,6 +647,14 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5231DF7715ECB45500A22651 /* Build configuration list for PBXNativeTarget "FRLayeredLogicTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5231DF7815ECB45500A22651 /* Debug */,
+				5231DF7915ECB45500A22651 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
 		DA4FACC015591AB300D85A7E /* Build configuration list for PBXProject "FRLayeredNavigationController" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

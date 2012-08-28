@@ -30,6 +30,7 @@
 
 #import "Utils.h"
 
+@class FRLayerModel;
 @class FRLayeredNavigationItem;
 
 /**
@@ -42,9 +43,9 @@
     @private
     UIView * __weak _firstTouchedView;
     UIPanGestureRecognizer *_panGR;
-    NSMutableArray *_layeredViewControllers;
     UIViewController * __weak _outOfBoundsViewController;
     UIView * __weak _dropNotificationView;
+    FRLayerModel *_model;
     BOOL _userInteractionEnabled;
     BOOL _dropLayersWhenPulledRight;
 }

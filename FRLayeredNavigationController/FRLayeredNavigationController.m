@@ -32,6 +32,7 @@
 #import "FRLayeredNavigationItem.h"
 #import "FRLayeredNavigationItem+Protected.h"
 #import "UIViewController+FRLayeredNavigationController.h"
+#import "FRLayerModel.h"
 
 #import <QuartzCore/QuartzCore.h>
 
@@ -48,10 +49,10 @@ typedef enum {
 @interface FRLayeredNavigationController ()
 
 @property (nonatomic, readwrite, strong) UIPanGestureRecognizer *panGR;
-@property (nonatomic, readwrite, strong) NSMutableArray *layeredViewControllers;
 @property (nonatomic, readwrite, weak) UIViewController *outOfBoundsViewController;
 @property (nonatomic, readwrite, weak) UIView *firstTouchedView;
 @property (nonatomic, weak) UIView *dropNotificationView;
+@property (nonatomic, readwrite, strong) FRLayerModel *model;
 
 @end
 
@@ -73,7 +74,6 @@ typedef enum {
     if (self) {
         FRLayerController *layeredRC = [[FRLayerController alloc] initWithContentViewController:rootViewController
                                                                                    maximumWidth:NO];
-        _layeredViewControllers = [[NSMutableArray alloc] initWithObjects:layeredRC, nil];
         layeredRC.layeredNavigationItem.nextItemDistance = FRLayeredNavigationControllerStandardDistance;
         layeredRC.layeredNavigationItem.width = FRLayeredNavigationControllerStandardWidth;
         layeredRC.layeredNavigationItem.hasChrome = NO;
@@ -83,6 +83,8 @@ typedef enum {
         _userInteractionEnabled = YES;
         _dropLayersWhenPulledRight = NO;
 
+        NSArray *ops = [self.model pushLayerController:layeredRC];
+        [self applyOperations:ops height:1024 correctLeftOverlap:YES];
         [self addChildViewController:layeredRC];
         [layeredRC didMoveToParentViewController:self];
     }
@@ -101,7 +103,7 @@ typedef enum {
 {
     self.view = [[UIView alloc] init];
 
-    for (FRLayerController *vc in self.layeredViewControllers) {
+    for (FRLayerController *vc in self.model.layeredViewControllers) {
         vc.view.frame = CGRectMake(vc.layeredNavigationItem.currentViewPosition.x,
                                    vc.layeredNavigationItem.currentViewPosition.y,
                                    vc.layeredNavigationItem.width,
@@ -181,8 +183,7 @@ typedef enum {
         case UIGestureRecognizerStateChanged: {
             //NSLog(@"UIGestureRecognizerStateChanged, vel=%f", [gestureRecognizer velocityInView:firstView].x);
 
-            const NSInteger startVcIdx = [self.layeredViewControllers count]-1;
-            const UIViewController *startVc = [self.layeredViewControllers objectAtIndex:startVcIdx];
+            const UIViewController *startVc = self.model.topLayerViewController;
 
             [self moveViewControllersXTranslation:[gestureRecognizer translationInView:self.view].x];
 
@@ -255,6 +256,10 @@ typedef enum {
     vc.view.frame = f;
 }
 
+/*
+ * Applies xTranslation to vc. If `bounded` then moves moves to the left are bound by 
+ * `vc.layeredNavigationItem.initialViewPosition`
+ */
 + (BOOL)viewController:(FRLayerController *)vc xTranslation:(CGFloat)origXTranslation bounded:(BOOL)bounded
 {
     BOOL didMoveOutOfBounds = NO;
@@ -297,26 +302,12 @@ typedef enum {
     return didMoveOutOfBounds;
 }
 
-- (BOOL)areViewControllersMaximallyCompressed
-{
-    BOOL maximalCompression = YES;
-
-    for (FRLayerController *lvc in self.layeredViewControllers) {
-        if (lvc.layeredNavigationItem.currentViewPosition.x > lvc.layeredNavigationItem.initialViewPosition.x) {
-            // use leftmost initial view position
-            maximalCompression = NO;
-        }
-    }
-
-    return maximalCompression;
-}
-
 - (void)viewControllersToSnappingPointsMethod:(SnappingPointsMethod)method
 {
     FRLayerController *last = nil;
     CGFloat xTranslation = 0;
 
-    for (FRLayerController *vc in self.layeredViewControllers) {
+    for (FRLayerController *vc in self.model.layeredViewControllers) {
         const CGPoint myPos = vc.layeredNavigationItem.currentViewPosition;
         const CGPoint myInitPos = vc.layeredNavigationItem.initialViewPosition;
 
@@ -373,9 +364,9 @@ typedef enum {
     FRLayeredNavigationItem *parentNavItem = nil;
     CGPoint parentOldPos = CGPointZero;
     BOOL descendentOfTouched = NO;
-    FRLayerController *rootVC = [self.layeredViewControllers objectAtIndex:0];
+    FRLayerController *rootVC = self.model.rootLayerViewController;
 
-    for (FRLayerController *me in [self.layeredViewControllers reverseObjectEnumerator]) {
+    for (FRLayerController *me in [self.model.layeredViewControllers reverseObjectEnumerator]) {
         if (rootVC == me) {
             break;
         }
@@ -417,7 +408,7 @@ typedef enum {
         if (self.outOfBoundsViewController == nil ||
             self.outOfBoundsViewController == me ||
             xTranslationGesture < 0) {
-            const BOOL boundedMove = !(isTouchedView && [self areViewControllersMaximallyCompressed]);
+            const BOOL boundedMove = !(isTouchedView && [self.model areViewControllersMaximallyCompressed]);
 
             /*
              * IF no view controller is out of bounds (too far on the left)
@@ -454,54 +445,12 @@ typedef enum {
     }
 }
 
-- (CGFloat)savePlaceWanted:(CGFloat)pointsWanted;
-{
-    CGFloat xTranslation = 0;
-    if (pointsWanted <= 0) {
-        return 0;
-    }
-
-    for (FRLayerController *vc in self.layeredViewControllers) {
-        const CGFloat initX = vc.layeredNavigationItem.initialViewPosition.x;
-        const CGFloat currentX = vc.layeredNavigationItem.currentViewPosition.x;
-
-        if (initX < currentX + xTranslation) {
-            xTranslation += initX - (currentX + xTranslation);
-        }
-
-        if (abs(xTranslation) >= pointsWanted) {
-            break;
-        }
-    }
-
-    for (FRLayerController *vc in self.layeredViewControllers) {
-        if (vc == [self.layeredViewControllers lastObject]) {
-            break;
-        }
-        [FRLayeredNavigationController viewController:vc xTranslation:xTranslation bounded:YES];
-    }
-    return abs(xTranslation);
-}
-
-
 - (void)doLayout
 {
-    for (FRLayerController *vc in self.layeredViewControllers) {
-        CGRect f = vc.view.frame;
-        if (vc.layeredNavigationItem.currentViewPosition.x < vc.layeredNavigationItem.initialViewPosition.x) {
-            vc.layeredNavigationItem.currentViewPosition = vc.layeredNavigationItem.initialViewPosition;
-        }
-        f.origin = vc.layeredNavigationItem.currentViewPosition;
-
-        if (vc.maximumWidth) {
-            f.size.width = CGRectGetWidth(self.view.bounds) - vc.layeredNavigationItem.initialViewPosition.x;
-            vc.layeredNavigationItem.width = CGRectGetWidth(f);
-        }
-
-        f.size.height = CGRectGetHeight(self.view.bounds);
-
-        vc.view.frame = f;
-    }
+    CGFloat width = CGRectGetWidth(self.view.bounds);
+    CGFloat height = CGRectGetHeight(self.view.bounds);
+    NSArray *ops = [self.model setWidth:width];
+    [self applyOperations:ops height:height correctLeftOverlap:YES];
 }
 
 - (CGRect)getScreenBoundsForCurrentOrientation
@@ -543,7 +492,7 @@ typedef enum {
 
 - (FRLayerController *)layerControllerOf:(UIViewController *)vc
 {
-    for (FRLayerController *lvc in self.layeredViewControllers) {
+    for (FRLayerController *lvc in self.model.layeredViewControllers) {
         if (lvc.contentViewController == vc) {
             return lvc;
         }
@@ -553,9 +502,10 @@ typedef enum {
 
 - (BOOL)layersInDropZone
 {
-    if ([self.layeredViewControllers count] > 1) {
-        const FRLayerController *rootVC = [self.layeredViewControllers objectAtIndex:0];
-        const FRLayerController *layer1VC = [self.layeredViewControllers objectAtIndex:1];
+    NSArray *vcs = self.model.layeredViewControllers;
+    if ([vcs count] > 1) {
+        const FRLayerController *rootVC = [vcs objectAtIndex:0];
+        const FRLayerController *layer1VC = [vcs objectAtIndex:1];
         const FRLayeredNavigationItem *rootNI = rootVC.layeredNavigationItem;
         const FRLayeredNavigationItem *layer1NI = layer1VC.layeredNavigationItem;
 
@@ -569,7 +519,7 @@ typedef enum {
 
 - (void)showDropNotification
 {
-    const FRLayerController *rootVC = [self.layeredViewControllers objectAtIndex:0];
+    const FRLayerController *rootVC = self.model.rootLayerViewController;
     const FRLayeredNavigationItem *rootNI = rootVC.layeredNavigationItem;
 
     UILabel *lv = [[UILabel alloc] init];
@@ -592,18 +542,32 @@ typedef enum {
     }
 }
 
+- (void)applyOperations:(NSArray *)operations
+                 height:(CGFloat)height
+     correctLeftOverlap:(BOOL)correctLeftOverlap
+{
+    for (FRLayerControllerOperation *op in operations) {
+        FRLayerController *vc = op.layerController;
+        CGRect f = vc.view.frame;
+        FRLayeredNavigationItem *item = vc.layeredNavigationItem;
+        CGPoint p = item.currentViewPosition;
+        f.origin = CGPointMake(p.x + op.xTranslation, p.y);
+        f.size = CGSizeMake(item.currentWidth + op.widthChange, height);
+        vc.view.frame = f;
+    }
+}
+
 #pragma mark - Public API
 
 - (void)popViewControllerAnimated:(BOOL)animated
 {
-    UIViewController *vc = [self.layeredViewControllers lastObject];
-
-    if ([self.layeredViewControllers count] == 1) {
+    if ([self.model.layeredViewControllers count] == 1) {
         /* don't remove root view controller */
         return;
     }
 
-    [self.layeredViewControllers removeObject:vc];
+    UIViewController *vc;
+    NSArray *ops = [self.model popLayerController:&vc];
 
     CGRect goAwayFrame = CGRectMake(CGRectGetMinX(vc.view.frame),
                                     1024,
@@ -616,6 +580,9 @@ typedef enum {
         [vc.view removeFromSuperview];
 
         [vc removeFromParentViewController];
+
+        CGFloat height = CGRectGetHeight(self.view.bounds);
+        [self applyOperations:ops height:height correctLeftOverlap:YES];
     };
 
     if (animated) {
@@ -635,7 +602,7 @@ typedef enum {
 {
     UIViewController *currentVc;
 
-    while ((currentVc = [self.layeredViewControllers lastObject])) {
+    while ((currentVc = [self.model.layeredViewControllers lastObject])) {
         if (([currentVc class] == [FRLayerController class] &&
              ((FRLayerController*)currentVc).contentViewController == vc) ||
             ([currentVc class] != [FRLayerController class] &&
@@ -643,7 +610,7 @@ typedef enum {
                 break;
             }
 
-        if ([self.layeredViewControllers count] == 1) {
+        if ([self.model.layeredViewControllers count] == 1) {
             /* don't remove root view controller */
             return;
         }
@@ -654,7 +621,7 @@ typedef enum {
 
 - (void)popToRootViewControllerAnimated:(BOOL)animated
 {
-    [self popToViewController:[self.layeredViewControllers objectAtIndex:0] animated:animated];
+    [self popToViewController:self.model.rootLayerViewController animated:animated];
 }
 
 - (void)pushViewController:(UIViewController *)contentViewController
@@ -672,7 +639,7 @@ typedef enum {
         FRWLOG(@"WARNING: View controller to push in front of ('%@') not pushed (yet), pushing on top instead.",
                anchorViewController);
         [self pushViewController:contentViewController
-                       inFrontOf:((FRLayerController *)[self.layeredViewControllers lastObject]).contentViewController
+                       inFrontOf:self.model.topLayerViewController.contentViewController
                     maximumWidth:maxWidth
                         animated:animated
                    configuration:configuration];
@@ -704,39 +671,14 @@ typedef enum {
 
     configuration(newVC.layeredNavigationItem);
 
-    const CGFloat overallWidth = CGRectGetWidth(self.view.bounds) > 0 ?
-                                 CGRectGetWidth(self.view.bounds) :
-                                 [self getScreenBoundsForCurrentOrientation].size.width;
+    FRLayerControllersOperations *ops = [self.model pushLayerController:newVC];
 
-    CGFloat width;
-    if (navItem.width > 0) {
-        width = navItem.width;
-    } else {
-        width = newVC.maximumWidth ? overallWidth - initX : FRLayeredNavigationControllerStandardWidth;
-        navItem.width = width;
-    }
-
-    CGRect onscreenFrame = CGRectMake(newVC.layeredNavigationItem.currentViewPosition.x,
-                                      newVC.layeredNavigationItem.currentViewPosition.y,
-                                      width,
-                                      CGRectGetHeight(self.view.bounds));
-    CGRect offscreenFrame = CGRectMake(MAX(1024, CGRectGetMinX(onscreenFrame)),
-                                       0,
-                                       CGRectGetWidth(onscreenFrame),
-                                       CGRectGetHeight(onscreenFrame));
-    newVC.view.frame = offscreenFrame;
-
-    [self.layeredViewControllers addObject:newVC];
     [self addChildViewController:newVC];
     [self.view addSubview:newVC.view];
 
     void (^doNewFrameMove)() = ^() {
-        CGFloat saved = [self savePlaceWanted:CGRectGetMinX(onscreenFrame)+width-overallWidth];
-        newVC.view.frame = CGRectMake(CGRectGetMinX(onscreenFrame) - saved,
-                                      CGRectGetMinY(onscreenFrame),
-                                      CGRectGetWidth(onscreenFrame),
-                                      CGRectGetHeight(onscreenFrame));
-        newVC.layeredNavigationItem.currentViewPosition = newVC.view.frame.origin;
+        CGFloat height = CGRectGetHeight(self.view.bounds);
+        [self applyOperations:ops height:height correctLeftOverlap:YES];
     };
     void (^newFrameMoveCompleted)(BOOL) = ^(BOOL finished) {
         [newVC didMoveToParentViewController:self];
@@ -786,8 +728,9 @@ typedef enum {
 
 - (NSArray *)viewControllers
 {
-    NSMutableArray *result = [NSMutableArray arrayWithCapacity:[self.layeredViewControllers count]];
-    [self.layeredViewControllers enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+    NSArray *vcs = self.model.layeredViewControllers;
+    NSMutableArray *result = [NSMutableArray arrayWithCapacity:[vcs count]];
+    [vcs enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         [result addObject:((FRLayerController*)obj).contentViewController];
     }];
     return [result copy];
@@ -795,18 +738,18 @@ typedef enum {
 
 - (UIViewController *)topViewController
 {
-    const FRLayerController *topLayerController = [self.layeredViewControllers lastObject];
+    const FRLayerController *topLayerController = self.model.topLayerViewController;
     return topLayerController.contentViewController;
 }
 
 #pragma mark - properties
 
-@synthesize layeredViewControllers = _layeredViewControllers;
 @synthesize panGR = _panGR;
 @synthesize firstTouchedView = _firstTouchedView;
 @synthesize outOfBoundsViewController = _outOfBoundsViewController;
 @synthesize userInteractionEnabled = _userInteractionEnabled;
 @synthesize dropLayersWhenPulledRight = _dropLayersWhenPulledRight;
 @synthesize dropNotificationView = _dropNotificationView;
+@synthesize model = _model;
 
 @end

@@ -16,11 +16,16 @@
 @property (nonatomic, strong) UILabel *widthLabel;
 @end
 
+#define MARGIN_X 4
+#define MARGIN_TOP 80
+#define MARGIN_BOTTOM 4
+#define FULL_WIDTH (1024 - 2 * MARGIN_X)
+
 @implementation MainViewController
 
 - (void)buttonClicked {
     UIView *v = self.rootViewController.view;
-    CGFloat newWidth = (v.frame.size.width > 800) ? 700 : 900;
+    CGFloat newWidth = (v.frame.size.width > 1000) ? 900 : FULL_WIDTH;
     [UIView animateWithDuration:1.0 delay:0.0 options: UIViewAnimationOptionLayoutSubviews animations:^{
         self.widthLabel.text = [NSString stringWithFormat:@"Width: %.0f", newWidth];
         CGRect frame = CGRectMake(v.frame.origin.x, v.frame.origin.y, newWidth, v.frame.size.height);
@@ -48,7 +53,7 @@
     UIView *v = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 768, 1024-44)];
     UIView *lv = self.rootViewController.view;
     lv.clipsToBounds = YES;
-    lv.frame = CGRectMake(20, 100, 900, 600);
+    lv.frame = CGRectMake(MARGIN_X, MARGIN_TOP, FULL_WIDTH, 768 - 44 - MARGIN_TOP - MARGIN_BOTTOM);
     [v addSubview:lv];
     lv.backgroundColor = [UIColor scrollViewTexturedBackgroundColor];
     v.backgroundColor = [UIColor orangeColor];
@@ -58,7 +63,7 @@
     [b addTarget:self action:@selector(buttonClicked) forControlEvents: UIControlEventTouchUpInside];
     [v addSubview:b];
     UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(170, 20, 130, 40)];
-    l.text = @"Width: 900";
+    l.text = [NSString stringWithFormat:@"  Width: %.0f", lv.frame.size.width];
     self.widthLabel = l;
     [v addSubview:l];
     self.view = v;

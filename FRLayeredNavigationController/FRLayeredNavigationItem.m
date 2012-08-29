@@ -30,6 +30,7 @@
 #import "FRLayerController+Protected.h"
 #import "FRLayerController.h"
 #import "FRLayerChromeView.h"
+#import "FRLayeredNavigationControllerConstants.h"
 
 @interface FRLayerSnappingPoint ()
 - (id)initWithX:(CGFloat)x priority:(NSInteger)priority;
@@ -43,6 +44,10 @@
         self->_priority = priority;
     }
     return self;
+}
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"FRLayerSnappingPoint { x=%f, priority=%d }", self.x, self.priority];
 }
 
 @synthesize x = _x;
@@ -74,6 +79,15 @@
     return self;
 }
 
+- (NSString *)description {
+    return [NSString stringWithFormat:@"FRLayeredNavigationItem { initialViewPosition=%@, currentViewPosition=%@, "
+            @"width=%f, currentWidth=%f, nextItemDistance=%f, title=%@, hasChrome=%d, displayShadow=%d, "
+            @"snappingPoints=%@",
+            NSStringFromCGPoint(self.initialViewPosition), NSStringFromCGPoint(self.currentViewPosition),
+            self.width, self.currentWidth, self.nextItemDistance, self.title,
+            self.hasChrome, self.displayShadow, self.internalSnappingPoints];
+}
+
 - (void)setLeftBarButtonItem:(UIBarButtonItem *)leftBarButtonItem
 {
     self.layerController.chromeView.leftBarButtonItem = leftBarButtonItem;
@@ -103,10 +117,11 @@
 
 - (NSSet *)snappingPoints
 {
-    NSMutableSet *set = [self.internalSnappingPoints copy];
-    if (self.nextItemDistance < 0) {
-        FRLayerSnappingPoint *p = [[FRLayerSnappingPoint alloc] initWithX:self.nextItemDistance
-                                                                 priority:FRLayerSnappingPointDefaultPriority];
+    NSMutableSet *set = [self.internalSnappingPoints mutableCopy];
+    if (self.nextItemDistance >= 0) {
+        FRLayerSnappingPoint *p = [[FRLayerSnappingPoint alloc]
+                                   initWithX:self.nextItemDistance
+                                    priority:FRLayeredNavigationControllerSnappingPointDefaultPriority];
         [set addObject:p];
     }
     return set;

@@ -30,17 +30,35 @@
 #import <UIKit/UIKit.h>
 #import <QuartzCore/QuartzCore.h>
 
-BOOL CGFloatEquals(CGFloat l, CGFloat r)
+BOOL FRFloatEquals(CGFloat l, CGFloat r)
 {
-    return abs(l-r) < 0.1;
+    return abs(l-r) < 0.001;
 }
 
-BOOL CGFloatNotEqual(CGFloat l, CGFloat r)
+BOOL FRFloatNotEqual(CGFloat l, CGFloat r)
 {
-    return !CGFloatEquals(l, r);
+    return !FRFloatEquals(l, r);
 }
 
-@implementation Utils
+CGPoint FRPointSetX(CGPoint p, CGFloat x)
+{
+    return CGPointMake(x, p.y);
+}
+
+CGPoint FRPointTransX(CGPoint p, CGFloat deltaX)
+{
+    return CGPointMake(p.x + deltaX, p.y);
+}
+
+FRSegment FRMakeSegment(CGFloat x, CGFloat width)
+{
+    FRSegment seg;
+    seg.x = x;
+    seg.width = width;
+    return seg;
+}
+
+@implementation FRUtils
 
 + (UIImage *)transparentImage
 {

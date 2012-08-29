@@ -76,6 +76,7 @@
 		5231DF7315ECB45500A22651 /* FRLayeredLogicTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FRLayeredLogicTests.h; sourceTree = "<group>"; };
 		5231DF7415ECB45500A22651 /* FRLayeredLogicTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FRLayeredLogicTests.m; sourceTree = "<group>"; };
 		5231DF7615ECB45500A22651 /* FRLayeredLogicTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FRLayeredLogicTests-Prefix.pch"; sourceTree = "<group>"; };
+		5231DFA715EE1D4B00A22651 /* FRLayeredNavigationControllerConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FRLayeredNavigationControllerConstants.h; sourceTree = "<group>"; };
 		52ED6E2415DCC1E900A8FC39 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		52ED6E2515DCC1E900A8FC39 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		687661CA15D997BE009DF4A4 /* FRNavigationBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRNavigationBar.h; sourceTree = "<group>"; };
@@ -240,6 +241,7 @@
 				687661CB15D997BE009DF4A4 /* FRNavigationBar.m */,
 				5231DF5E15ECB2BE00A22651 /* FRLayerModel.h */,
 				5231DF5F15ECB2BE00A22651 /* FRLayerModel.m */,
+				5231DFA715EE1D4B00A22651 /* FRLayeredNavigationControllerConstants.h */,
 			);
 			path = FRLayeredNavigationController;
 			sourceTree = "<group>";
@@ -654,6 +656,7 @@
 				5231DF7915ECB45500A22651 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		DA4FACC015591AB300D85A7E /* Build configuration list for PBXProject "FRLayeredNavigationController" */ = {
 			isa = XCConfigurationList;

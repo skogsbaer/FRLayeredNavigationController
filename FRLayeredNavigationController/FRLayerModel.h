@@ -18,7 +18,10 @@ typedef NSArray FRLayerControllersOperations;
 // - Computes changes w.r.t. currentViewPosition and currentWidth
 // - Does *not* return a operation for popping the topmost layer
 @interface FRLayerModel : NSObject {
-    NSArray *_layeredViewControllers;
+    @private
+    NSMutableArray *_viewControllers;
+    CGFloat _width;
+    CGFloat _screenWidth;
 }
 
 - (NSArray *)layeredViewControllers;

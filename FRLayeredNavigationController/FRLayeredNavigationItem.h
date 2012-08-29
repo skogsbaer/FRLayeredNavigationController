@@ -32,9 +32,6 @@
 
 @class FRLayerController;
 
-#define FRLayerSnappingPointDefaultPriority 0
-#define FRLayeredNavigationItemNoDistance (-1)
-
 @interface FRLayerSnappingPoint : NSObject {
     @private
     CGFloat _x;

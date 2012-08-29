@@ -33,12 +33,9 @@
 #import "FRLayeredNavigationItem+Protected.h"
 #import "UIViewController+FRLayeredNavigationController.h"
 #import "FRLayerModel.h"
+#import "FRLayeredNavigationControllerConstants.h"
 
 #import <QuartzCore/QuartzCore.h>
-
-#define FRLayeredNavigationControllerStandardDistance ((float)64)
-#define FRLayeredNavigationControllerStandardWidth ((float)400)
-#define FRLayeredNavigationControllerSnappingVelocityThreshold ((float)100)
 
 typedef enum {
     SnappingPointsMethodNearest,
@@ -546,6 +543,7 @@ typedef enum {
                  height:(CGFloat)height
      correctLeftOverlap:(BOOL)correctLeftOverlap
 {
+    // FIXME!!!!!!!!!!!!!!!
     for (FRLayerControllerOperation *op in operations) {
         FRLayerController *vc = op.layerController;
         CGRect f = vc.view.frame;

@@ -64,6 +64,11 @@
     return self;
 }
 
+- (NSString *)description {
+    return [NSString stringWithFormat:@"FRLayerController { layeredNavigationItem=%@, maximumWidth=%d }",
+            self.layeredNavigationItem, self.maximumWidth];
+}
+
 - (void)observeValueForKeyPath:(NSString *)keyPath
                       ofObject:(id)object
                         change:(NSDictionary *)change

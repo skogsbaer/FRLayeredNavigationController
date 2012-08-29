@@ -30,10 +30,20 @@
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
-BOOL CGFloatEquals(CGFloat l, CGFloat r);
-BOOL CGFloatNotEqual(CGFloat l, CGFloat r);
+BOOL FRFloatEquals(CGFloat l, CGFloat r);
+BOOL FRFloatNotEqual(CGFloat l, CGFloat r);
+CGPoint FRPointSetX(CGPoint p, CGFloat x);
+CGPoint FRPointTransX(CGPoint p, CGFloat deltaX);
 
-@interface Utils
+struct FRSegment {
+    CGFloat x;
+    CGFloat width;
+};
+typedef struct FRSegment FRSegment;
+
+FRSegment FRMakeSegment(CGFloat x, CGFloat width);
+
+@interface FRUtils
 
 + (UIImage *)transparentImage;
 

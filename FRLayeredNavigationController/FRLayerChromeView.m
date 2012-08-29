@@ -48,7 +48,7 @@
 
         _toolbar = [[UIToolbar alloc] initWithFrame:CGRectZero];
         _toolbar.clipsToBounds = YES;
-        [_toolbar setBackgroundImage:[Utils transparentImage]
+        [_toolbar setBackgroundImage:[FRUtils transparentImage]
                   forToolbarPosition:UIToolbarPositionAny
                           barMetrics:UIBarMetricsDefault];
         [self addSubview:_toolbar];

@@ -299,7 +299,7 @@
     if (FRFloatEquals(self->_width, newWidth)) {
         return [NSArray array];
     } else {
-        CGFloat curWidth = MAX(self->_width, [self widthOfAllLayers]);
+        CGFloat curWidth = [self widthOfAllLayers];
         NSMutableArray *ops = [NSMutableArray array];
         if (curWidth < newWidth) {
             [self enlargeBy:(newWidth - curWidth) operations:ops];

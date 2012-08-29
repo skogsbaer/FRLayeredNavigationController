@@ -151,7 +151,7 @@ snapping prio:   1          3                            2      4
     ops = [self.model pushLayerController:self.layer3]; // no fit with snapping point B
     STAssertEquals(ops.count, 2U, nil);
     AssertMoves(self.layer2, ops, SNAP_B, SNAP_A);
-    AssertMoves(self.layer3, ops, SNAP_B + WIDTH_2, SNAP_A + WIDTH_2);
+    AssertMoves(self.layer3, ops, 210, SNAP_A + WIDTH_2);
     STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
     STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
     STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_A + WIDTH_2, nil);

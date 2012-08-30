@@ -89,37 +89,6 @@ right snap prio               7                                     8
     return ctrl;
 }
 
-#define AssertOp(__layer, __ops, __from, __to, __oldWidth, __newWidth) \
-    do { \
-//STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__from, 0.001, \
-//                                   @"currentViewPosition.x of %@ not at %f as expected before ops", __layer, __from); \
-//        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__oldWidth, 0.001, \
-//                                   @"currentWidth of %@ not %f as expected before ops", __layer, __oldWidth); \
-//        [self applyOps:__ops on:__layer]; \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__to, 0.001, \
-                                   @"currentViewPosition.x of %@ not at %f as expected after ops %@", \
-                                   __layer, __to, __ops); \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__newWidth, 0.001, \
-                                   @"currentWidth of %@ not %f as expected after ops %@", \
-                                   __layer, __newWidth, __ops); \
-    } while (0)
-
-#define AssertMoves(__layer, __op, __from, __to) \
-    AssertOp(__layer, __op, __from, __to, \
-             __layer.layeredNavigationItem.currentWidth, \
-             __layer.layeredNavigationItem.currentWidth)
-
-#define AssertNoOp(__layer, __op) \
-    AssertMoves(__layer, __op, \
-                __layer.layeredNavigationItem.currentViewPosition.x, \
-                __layer.layeredNavigationItem.currentViewPosition.x)
-
-#define AssertResize(__layer, __op, __oldWidth, __newWidth) \
-    AssertOp(__layer, __op, \
-             __layer.layeredNavigationItem.currentViewPosition.x, \
-             __layer.layeredNavigationItem.currentViewPosition.x, \
-             __oldWidth, __newWidth)
-
 #define AssertLayer(__layer, __initPos, __currentPos, __currentWidth) \
     do { \
         STAssertEquals(__layer.layeredNavigationItem.initialViewPosition.x, (CGFloat)__initPos, \

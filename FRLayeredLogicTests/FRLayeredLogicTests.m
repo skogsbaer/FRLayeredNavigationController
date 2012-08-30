@@ -218,45 +218,35 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, 420 - WIDTH_1 - WIDTH_2);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3, WIDTH_4);
     
-    // TODO: - make remaining tests running
-    //       - check whether resetting initialViewPosition all the time is ok
-    //       - graphical demo and test
-    
-    // EVERYTHING OK UNTIL HERE
-    
-    
     [self.model setWidth:380]; // fit with B and C
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
-    AssertLayer(self.layer3, WIDTH_1 + SNAP_B, WIDTH_1 + SNAP_B, 380 - WIDTH_1 - SNAP_B);
-    AssertLayer(self.layer4,  WIDTH_1 + SNAP_B + SNAP_C, WIDTH_1 + SNAP_B + SNAP_C, WIDTH_4);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, 380 - SNAP_B - WIDTH_2);
+    AssertLayer(self.layer4, SNAP_B + WIDTH_2 + SNAP_C, SNAP_B + WIDTH_2 + SNAP_C, WIDTH_4 + 40);
     
-    /*
-    ops = [self.model setWidth:270]; // fit with A and C
-    STAssertEquals(ops.count, 3U, nil);
-    AssertMoves(self.layer2, ops, SNAP_B, SNAP_A);
-    AssertResize(self.layer3, ops, WIDTH_3 + 180 + 20 - 30, 140);
-    AssertResize(self.layer4, ops, WIDTH_4 + 20 - 30 + 50, 120);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_A + WIDTH_2, nil);
-    STAssertEquals(self.layer4.layeredNavigationItem.initialViewPosition.x, SNAP_A + WIDTH_2 + SNAP_C, nil);
+    [self.model setWidth:270]; // fit with A and C
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, 270 - SNAP_A - WIDTH_2);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4 + 10);
 
-    ops = [self.model setWidth:260]; // exactly fit with A and C
-    STAssertEquals(ops.count, 2U, nil);
-    AssertResize(self.layer3, ops, 140, 130);
-    AssertResize(self.layer4, ops, 120, 110);
+    [self.model setWidth:260]; // exactly fit with A and C
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3 + 40);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4);
 
-    ops = [self.model setWidth:225];
-    STAssertEquals(ops.count, 2U, nil);
-    AssertResize(self.layer3, ops, 140, 95);
-    AssertResize(self.layer4, ops, 120, 110);
-
-    ops = [self.model setWidth:215];
-    STAssertEquals(ops.count, 2U, nil);
-    AssertResize(self.layer3, ops, 140, 90);
-    AssertResize(self.layer4, ops, 120, 110);
-    */
+    [self.model setWidth:225];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3 + 5);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4);
+    
+    [self.model setWidth:215];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4);
 }
 
 

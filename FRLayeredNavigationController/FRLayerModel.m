@@ -461,21 +461,21 @@
         FRLayerController *next = [vcs objectAtIndex:nextIndex];
         FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
         if (nextItem.initialViewPosition.x > snapPointAbsX) {
-            CGFloat transX = snapPointAbsX - nextItem.currentViewPosition.x;
-            if (transX < 0) {
-                spaceLost = -transX;
-                // move layers the left
-                for (NSInteger i = nextIndex; i < vcs.count; i++) {
-                    FRLayerController *lc = [vcs objectAtIndex:i];
-                    FRLayeredNavigationItem *lcItem = lc.layeredNavigationItem;
-                    lcItem.currentViewPosition = FRPointTransX(lcItem.currentViewPosition, transX);
-                    if (lc != next) { // dealt with later
-                        lcItem.initialViewPosition = FRPointTransX(lcItem.initialViewPosition, transX);
-                    }
-                }
-            }
             // move nextItem.initialViewPosition to the left
             nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
+        }
+        CGFloat transX = nextItem.initialViewPosition.x - nextItem.currentViewPosition.x;
+        if (transX < 0) {
+            spaceLost = -transX;
+            // move layers the left
+            for (NSInteger i = nextIndex; i < vcs.count; i++) {
+                FRLayerController *lc = [vcs objectAtIndex:i];
+                FRLayeredNavigationItem *lcItem = lc.layeredNavigationItem;
+                lcItem.currentViewPosition = FRPointTransX(lcItem.currentViewPosition, transX);
+                if (lc != next) { // already dealt with
+                    lcItem.initialViewPosition = FRPointTransX(lcItem.initialViewPosition, transX);
+                }
+            }
         }
     }
     return spaceLost;

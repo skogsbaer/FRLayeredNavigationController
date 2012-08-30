@@ -38,20 +38,20 @@
 {
     [super setUp];
     self.model = [[FRLayerModel alloc] init];
-    self.layer1 = [self newLayer:NO config:^(FRLayeredNavigationItem *navItem) {
+    self.layer1 = [self newLayer:@"layer1" maxWidth:NO config:^(FRLayeredNavigationItem *navItem) {
         navItem.width = WIDTH_1;
         [navItem addSnappingPointX:SNAP_A priority:1];
         [navItem addSnappingPointX:SNAP_B priority:3];
     }];
-    self.layer2 = [self newLayer:NO config:^(FRLayeredNavigationItem *navItem) {
+    self.layer2 = [self newLayer:@"layer2" maxWidth:NO config:^(FRLayeredNavigationItem *navItem) {
         navItem.width = WIDTH_2;
     }];
-    self.layer3 = [self newLayer:YES config:^(FRLayeredNavigationItem *navItem) {
+    self.layer3 = [self newLayer:@"layer3" maxWidth:YES config:^(FRLayeredNavigationItem *navItem) {
         navItem.width = WIDTH_3;
         [navItem addSnappingPointX:SNAP_C priority:2];
         [navItem addSnappingPointX:SNAP_D priority:4];
     }];
-    self.layer4 = [self newLayer:YES config:^(FRLayeredNavigationItem *navItem) {
+    self.layer4 = [self newLayer:@"layer4" maxWidth:YES config:^(FRLayeredNavigationItem *navItem) {
         navItem.width = WIDTH_4;
     }];
     /* We have the following model
@@ -73,9 +73,13 @@ snapping prio:   1          3                            2      4
     [super tearDown];
 }
 
-- (FRLayerController *)newLayer:(BOOL)maxWidth config:(void (^)(FRLayeredNavigationItem *item))config {
+- (FRLayerController *)newLayer:(NSString *)name
+                       maxWidth:(BOOL)maxWidth
+                         config:(void (^)(FRLayeredNavigationItem *item))config
+{
     FRLayerController *ctrl = [[FRLayerController alloc] initWithContentViewController:nil maximumWidth:maxWidth];
     config(ctrl.layeredNavigationItem);
+    ctrl.name = name;
     return ctrl;
 }
 
@@ -90,13 +94,19 @@ snapping prio:   1          3                            2      4
     }
 }
 
-#define AssertOp(__layer, __op, __from, __to, __oldWidth, __newWidth) \
+#define AssertOp(__layer, __ops, __from, __to, __oldWidth, __newWidth) \
     do { \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__from, 0.001, nil); \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__oldWidth, 0.001, nil); \
-        [self applyOps:__op on:__layer]; \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__to, 0.001, nil); \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__newWidth, 0.001, nil); \
+        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__from, 0.001, \
+                                   @"currentViewPosition.x of %@ not at %f as expected before ops", __layer, __from); \
+        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__oldWidth, 0.001, \
+                                   @"currentWidth of %@ not %f as expected before ops", __layer, __oldWidth); \
+        [self applyOps:__ops on:__layer]; \
+        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__to, 0.001, \
+                                   @"currentViewPosition.x of %@ not at %f as expected after ops %@", \
+                                   __layer, __to, __ops); \
+        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__newWidth, 0.001, \
+                                   @"currentWidth of %@ not %f as expected after ops %@", \
+                                   __layer, __newWidth, __ops); \
     } while (0)
 
 #define AssertMoves(__layer, __op, __from, __to) \
@@ -172,7 +182,7 @@ snapping prio:   1          3                            2      4
     STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2, nil);
 
     ops = [self.model setWidth:220]; // no fit with snapping point B
-    STAssertEquals(ops.count, 2U, nil);
+    STAssertEquals(ops.count, 3U, nil);
     AssertMoves(self.layer2, ops, SNAP_B, SNAP_A);
     AssertOp(self.layer3, ops, SNAP_B + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3 + 20, WIDTH_3);
     STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
@@ -197,6 +207,7 @@ snapping prio:   1          3                            2      4
     STAssertEquals(self.layer3.layeredNavigationItem.currentWidth, WIDTH_3, nil);
     STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
     STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
+    // EVERYTHING OK UNITL HERE
     STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_A + WIDTH_2, nil);
 
     ops = [self.model setWidth:390]; // fits exactly with snapping points B and D (if layer4 is pushed soon)

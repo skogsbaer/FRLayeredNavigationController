@@ -65,8 +65,8 @@
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"FRLayerController { layeredNavigationItem=%@, maximumWidth=%d }",
-            self.layeredNavigationItem, self.maximumWidth];
+    return [NSString stringWithFormat:@"FRLayerController { name=%@, layeredNavigationItem=%@, maximumWidth=%d }",
+            self.name, self.layeredNavigationItem, self.maximumWidth];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath
@@ -216,5 +216,6 @@
 @synthesize chromeView = _chromeView;
 @synthesize layeredNavigationItem = _layeredNavigationItem;
 @synthesize contentView = _contentView;
+@synthesize name = _name;
 
 @end

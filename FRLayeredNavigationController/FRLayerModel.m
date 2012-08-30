@@ -14,6 +14,7 @@
 
 @interface FRLayerModel ()
 @property (nonatomic, strong) NSMutableArray *viewControllers;
+- (NSMutableArray *)doLayout;
 @end
 
 @interface FRLayerControllerOperation ()
@@ -166,6 +167,7 @@
                     [operations addObject:op];
                 }
                 savedSpace += -xTrans;
+                newX = newX + xTrans;
             }
         } else {
             // ctrl is the current topmost layer (below the layer to be pushed)
@@ -232,14 +234,15 @@
         NSException *ex = [NSException exceptionWithName:NSRangeException
                                                   reason:@"Attempt to pop FRLayerController from empty FRLayerModel"                                                userInfo:nil];
         [ex raise];
+        return nil;
     } else {
         FRLayerController *ctrl = [self.viewControllers objectAtIndex:(n - 1)];
         if (ctrlPtr != NULL) {
             *ctrlPtr = ctrl;
         }
         [self.viewControllers removeLastObject];
+        return [self doLayout];
     }
-    return nil;
 }
 
 - (void)enlargeBy:(CGFloat)space operations:(NSMutableArray *)operations {
@@ -256,23 +259,23 @@
              FRLayerController *next = [nextVCs objectAtIndex:0];
              FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
              if (nextItem.initialViewPosition.x < snapPointAbsX) {
-                 CGFloat transCurX = snapPointAbsX - nextItem.currentViewPosition.x;
-                 if (transCurX > 0) {
-                     if (transCurX > spaceStillAvailable) {
+                 CGFloat transX = snapPointAbsX - nextItem.currentViewPosition.x;
+                 if (transX > 0) {
+                     if (transX > spaceStillAvailable) {
                          *stop = YES;
                      } else {
-                         spaceStillAvailable = spaceStillAvailable - transCurX;
+                         spaceStillAvailable = spaceStillAvailable - transX;
                          // move layers the right
                          for (FRLayerController *lc in nextVCs) {
                              FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc]
                                                                initWithLayerController:lc
-                                                                          xTranslation:transCurX
+                                                                          xTranslation:transX
                                                                            widthChange:0.0];
                              [operations addObject:op];
                          }
                          // adjust initialViewPosition, compensate for transCurX
                          nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition,
-                                                                    snapPointAbsX - transCurX);
+                                                                    snapPointAbsX - transX);
                      }
                  } else {
                      // only move nextItem.initialViewPosition to the right
@@ -295,19 +298,96 @@
      }
 }
 
+- (CGFloat)maxShrinkByResizing {
+    CGFloat shrink = -1;
+    for (FRLayerController *lc in self.viewControllers) {
+        if (lc.maximumWidth) {
+            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+            CGFloat minWidth = MAX(0, item.width);
+            CGFloat delta = item.currentWidth - minWidth;
+            if (shrink < 0 || shrink > delta) {
+                shrink = delta;
+            }
+        }
+    }
+    return MAX(0, shrink);
+}
+
+- (void)shrinkBy:(CGFloat)space operations:(NSMutableArray *)operations {
+    if (space <= 0) {
+        return;
+    }
+    CGFloat shrinkByResizing = [self maxShrinkByResizing];
+    if (shrinkByResizing > 0) {
+        for (FRLayerController *lc in self.viewControllers) {
+            if (lc.maximumWidth) {
+                FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc]
+                                                  initWithLayerController:lc
+                                                  xTranslation:0.0
+                                                  widthChange:-shrinkByResizing];
+            [operations addObject:op];
+            }
+        }
+        space = space - shrinkByResizing;
+    }
+    if (space <= 0) {
+        return;
+    }
+
+    __block CGFloat spaceStillNeeded = space;
+    // move initialViewPositions
+    [self enumerateSnappingPointsAsc:NO block:^(FRLayerController *ctrl,
+                                                 FRLayerSnappingPoint *snapPoint,
+                                                 NSArray *nextVCs,
+                                                 BOOL *stop)
+     {
+         if (spaceStillNeeded <= 0) {
+             *stop = YES;
+         } else {
+             FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+             CGFloat snapPointAbsX = item.currentViewPosition.x + snapPoint.x;
+             if (nextVCs.count > 0) {
+                 FRLayerController *next = [nextVCs objectAtIndex:0];
+                 FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
+                 if (snapPointAbsX < nextItem.initialViewPosition.x) {
+                     nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
+                 }
+                 CGFloat transX = nextItem.initialViewPosition.x - nextItem.currentViewPosition.x;
+                 if (transX < 0) {
+                     spaceStillNeeded = spaceStillNeeded + transX;
+                     // move layers the left
+                     for (FRLayerController *lc in nextVCs) {
+                         FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc]
+                                                           initWithLayerController:lc
+                                                                      xTranslation:transX
+                                                                       widthChange:0.0];
+                         [operations addObject:op];
+                     }
+                     // compensate for transX on initialViewPosition
+                     nextItem.initialViewPosition = FRPointTransX(nextItem.initialViewPosition, -transX);
+                 }
+             }
+         }
+     }];
+}
+
+- (NSMutableArray *)doLayout {
+    CGFloat curWidth = [self widthOfAllLayers];
+    NSMutableArray *ops = [NSMutableArray array];
+    if (curWidth < self->_width) {
+        [self enlargeBy:(self->_width - curWidth) operations:ops];
+    } else {
+        [self shrinkBy:(curWidth - self->_width) operations:ops];
+    }
+    return ops;
+}
+
 - (FRLayerControllersOperations *)setWidth:(CGFloat)newWidth {
     if (FRFloatEquals(self->_width, newWidth)) {
         return [NSArray array];
     } else {
-        CGFloat curWidth = [self widthOfAllLayers];
-        NSMutableArray *ops = [NSMutableArray array];
-        if (curWidth < newWidth) {
-            [self enlargeBy:(newWidth - curWidth) operations:ops];
-        } else {
-            // FIXME
-        }
         self->_width = newWidth;
-        return ops;
+        return [self doLayout];
     }
 }
 

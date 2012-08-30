@@ -52,6 +52,7 @@
     NSString *_title;
     UIView *_titleView;
     CGFloat _width;
+    NSInteger _widthAdjustPriority;
     CGFloat _nextItemDistance;
     BOOL _hasChrome;
     BOOL _displayShadow;
@@ -85,6 +86,8 @@
  * defines the minimum width of the layer.
  */
 @property (nonatomic, readwrite) CGFloat width;
+
+@property (nonatomic, readwrite) NSInteger widthAdjustPriority;
 
 /**
  * The layer's current width in points. Managed by internaly by FRLayeredNavigationController.

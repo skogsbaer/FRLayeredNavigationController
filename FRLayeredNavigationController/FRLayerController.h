@@ -42,6 +42,8 @@
     UIView __weak *_contentView;
 
     UIViewController *_contentViewController;
+    
+    NSString *_name;
 }
 
 - (id)initWithContentViewController:(UIViewController *)contentViewController maximumWidth:(BOOL)maxWidth;
@@ -50,4 +52,5 @@
 @property (nonatomic, readonly, strong) UIViewController *contentViewController;
 @property (nonatomic, readonly) BOOL maximumWidth;
 
+@property (nonatomic, strong) NSString *name;
 @end

@@ -176,7 +176,7 @@ right snap prio               7                                     8
 
     [self.model popLayerController]; // fit with right margin of layer1
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
-    AssertLayer(self.layer2, WIDTH_1, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
 
     [self.model setWidth:209]; // not fit with snapping point B
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
@@ -187,8 +187,6 @@ right snap prio               7                                     8
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
-
-    // EVERYTHING OK UNTIL HERE
 
     [self.model setWidth:390]; // fits exactly with snapping points B and D (if layer4 is pushed soon)
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
@@ -203,34 +201,37 @@ right snap prio               7                                     8
     
     [self.model setWidth:410]; // move layer2 to the right, extend layer4
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
-    AssertLayer(self.layer2, WIDTH_1, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, 410 - WIDTH_1 - WIDTH_2);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_4 + 10);
 
     [self.model setWidth:420]; // move layer4 to the right but shrink it
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
-    AssertLayer(self.layer2, WIDTH_1, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, 420 - WIDTH_1 - WIDTH_2);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3, WIDTH_4);
     
     [self.model setWidth:50];
     [self.model setWidth:420]; // again, different starting point
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, 420 - WIDTH_1 - WIDTH_2);
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3, WIDTH_4);
+    
+    // TODO: - make remaining tests running
+    //       - check whether resetting initialViewPosition all the time is ok
+    //       - graphical demo and test
+    
+    // EVERYTHING OK UNTIL HERE
+    
+    
+    [self.model setWidth:380]; // fit with B and C
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
-    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, WIDTH_3 + 30);
-    AssertLayer(self.layer4, SNAP_B + WIDTH_2 + WIDTH_3, SNAP_B + WIDTH_2 + WIDTH_3, WIDTH_4 + 10);
-
+    AssertLayer(self.layer3, WIDTH_1 + SNAP_B, WIDTH_1 + SNAP_B, 380 - WIDTH_1 - SNAP_B);
+    AssertLayer(self.layer4,  WIDTH_1 + SNAP_B + SNAP_C, WIDTH_1 + SNAP_B + SNAP_C, WIDTH_4);
+    
     /*
-    ops = [self.model setWidth:380]; // fit with B and C
-    STAssertEquals(ops.count, 2U, nil);
-    AssertResize(self.layer3, ops, WIDTH_3 + 180 + 20, WIDTH_3 + 180 + 20 - 30);
-    AssertOp(self.layer4, ops, SNAP_B + WIDTH_2 + SNAP_D, SNAP_B + WIDTH_2 + SNAP_C,
-                WIDTH_4 + 20, WIDTH_4 + 20 - 30 + 50);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2, nil);
-    STAssertEquals(self.layer4.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2 + SNAP_C, nil);
-
     ops = [self.model setWidth:270]; // fit with A and C
     STAssertEquals(ops.count, 3U, nil);
     AssertMoves(self.layer2, ops, SNAP_B, SNAP_A);
@@ -255,7 +256,7 @@ right snap prio               7                                     8
     STAssertEquals(ops.count, 2U, nil);
     AssertResize(self.layer3, ops, 140, 90);
     AssertResize(self.layer4, ops, 120, 110);
-     */
+    */
 }
 
 

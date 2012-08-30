@@ -78,6 +78,13 @@
 {
     return self->_nextIndex;
 }
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"FRLayoutOperationSnappingPoint { priority=%d, "
+            @"controller=%@, snapPointX=%f, nextIndex=%d }",
+            self.priority, self.controller, self.snapPointX, self.nextIndex];
+}
 @end
 
 @interface FRLayoutOperationRightMargin : FRLayoutOperation {
@@ -111,12 +118,23 @@
 {
     return self->_nextIndex;
 }
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"FRLayoutOperationRightMargin { priority=%d, "
+            @"controller=%@, nextIndex=%d }",
+            self.priority, self.controller, self.nextIndex];
+}
 @end
 
 @interface FRLayoutOperationResize : FRLayoutOperation
 @end
 
 @implementation FRLayoutOperationResize
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"FRLayoutOperationResize { priority=%d }", self.priority];
+}
 @end
 
 #pragma mark Model implementation
@@ -288,6 +306,16 @@
     }   
 }
 
+- (void)backToMinimumWidth {
+    for (FRLayerController *lc in self.viewControllers) {
+        if (lc.maximumWidth) {
+            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+            item.currentWidth = (item.width <= 0) ? FRLayeredNavigationControllerStandardMiniumWidth : item.width;
+        }
+    }
+}
+
+
 #pragma mark Enlarging
 
 // Returns the space made available. The result is never larger than the space parameter.
@@ -386,7 +414,6 @@
              spaceStillAvailable = spaceStillAvailable - spaceGained;
          }
      }];
-    [self fillSpace];
 }
 
 #pragma mark Shrinking
@@ -447,7 +474,7 @@
                     }
                 }
             }
-            // move nextItem.initialViewPosition to the right
+            // move nextItem.initialViewPosition to the left
             nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
         }
     }
@@ -483,18 +510,19 @@
     if (spaceNeeded < 0) {
         [self enlargeByResizing:-spaceNeeded];
     }
-    [self fillSpace];
 }
 
 # pragma mark Layout
 
 - (void)doLayout {
+    [self backToMinimumWidth];
     CGFloat curWidth = [self widthOfAllLayers];
     if (curWidth < self->_width) {
         [self enlargeBy:(self->_width - curWidth)];
     } else if (self->_width < curWidth) {
         [self shrinkBy:(curWidth - self->_width)];
     }
+    [self fillSpace];
 }
 @end
 

@@ -13,36 +13,20 @@
 typedef NSArray FRLayerControllersOperations;
 
 // Responsibilities:
-// - Updates initialViewPosition according to snappingPoints with priorities
-// - Sets currentViewPosition and currentWidth on push
-// - Computes changes w.r.t. currentViewPosition and currentWidth
-// - Does *not* return a operation for popping the topmost layer
+// - Updates initialViewPosition, currentViewPosition and currentWidth
+// - Does *not* model the fade-in/fade-out animations when pushing/popping a layer
 @interface FRLayerModel : NSObject {
     @private
     NSMutableArray *_viewControllers;
     CGFloat _width;
-    CGFloat _screenWidth;
 }
 
 - (NSArray *)layeredViewControllers;
 - (FRLayerController *)rootLayerViewController;
 - (FRLayerController *)topLayerViewController;
-- (FRLayerControllersOperations *)pushLayerController:(FRLayerController *)ctrl;
-- (FRLayerControllersOperations *)popLayerController:(FRLayerController **)ctrlPtr;
-- (FRLayerControllersOperations *)setWidth:(CGFloat)width;
+- (CGFloat)pushLayerController:(FRLayerController *)ctrl;
+- (FRLayerController *)popLayerController;
+- (void)setWidth:(CGFloat)width;
 - (BOOL)areViewControllersMaximallyCompressed;
 
 @end
-
-@interface FRLayerControllerOperation : NSObject {
-    @private
-    FRLayerController *_layerController;
-    CGFloat _xTranslation;
-    CGFloat _widthChange;
-}
-- (FRLayerController *)layerController;
-- (CGFloat)xTranslation;
-- (CGFloat)widthChange;
-@end
-
-

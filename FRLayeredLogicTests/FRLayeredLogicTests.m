@@ -22,7 +22,7 @@
 #define WIDTH_1 ((CGFloat)100)
 #define WIDTH_2 ((CGFloat)120)
 #define WIDTH_3 ((CGFloat)90)
-#define WIDTH_4 ((CGFloat)50)
+#define WIDTH_4 ((CGFloat)110)
 
 @interface FRLayeredLogicTests ()
 @property (nonatomic, strong) FRLayerModel *model;
@@ -42,6 +42,7 @@
         navItem.width = WIDTH_1;
         [navItem addSnappingPointX:SNAP_A priority:1];
         [navItem addSnappingPointX:SNAP_B priority:3];
+        navItem.rightMarginSnappingPriority = 7;
     }];
     self.layer2 = [self newLayer:@"layer2" maxWidth:NO config:^(FRLayeredNavigationItem *navItem) {
         navItem.width = WIDTH_2;
@@ -50,20 +51,25 @@
         navItem.width = WIDTH_3;
         [navItem addSnappingPointX:SNAP_C priority:2];
         [navItem addSnappingPointX:SNAP_D priority:4];
+        navItem.rightMarginSnappingPriority = 8;
+        navItem.resizePriority = 6;
     }];
     self.layer4 = [self newLayer:@"layer4" maxWidth:YES config:^(FRLayeredNavigationItem *navItem) {
         navItem.width = WIDTH_4;
+        navItem.resizePriority = 9;
     }];
     /* We have the following model
 
 width:             100               120                min. 90         min. 110
+resize prios:                                           6               9
                +--------------+  +----------------+  +--------------+  +--------+
                | layer1       |  | layer2         |  | layer3       |  | layer4 |
                |              |  |                |  |              |  |        |
                +--------------+  +----------------+  +--------------+  +--------+
-snapping name:   A          B                            C      D
-snapping X:     10         90                           20      70
-snapping prio:   1          3                            2      4
+snapping name:   A          B                             C      D
+snapping X:     10         90                            20     70
+snapping prio:   1          3                            2       4
+right snap prio               7                                     8
      */
 }
 
@@ -83,24 +89,13 @@ snapping prio:   1          3                            2      4
     return ctrl;
 }
 
-- (void)applyOps:(FRLayerControllersOperations *)ops on:(FRLayerController *)layer {
-    for (FRLayerControllerOperation *op in ops) {
-        if (op.layerController == layer) {
-            FRLayeredNavigationItem *item = layer.layeredNavigationItem;
-            item.currentViewPosition = FRPointTransX(item.currentViewPosition, op.xTranslation);
-            item.initialViewPosition = FRPointTransX(item.initialViewPosition, op.xTranslation);
-            layer.layeredNavigationItem.currentWidth += op.widthChange;
-        }
-    }
-}
-
 #define AssertOp(__layer, __ops, __from, __to, __oldWidth, __newWidth) \
     do { \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__from, 0.001, \
-                                   @"currentViewPosition.x of %@ not at %f as expected before ops", __layer, __from); \
-        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__oldWidth, 0.001, \
-                                   @"currentWidth of %@ not %f as expected before ops", __layer, __oldWidth); \
-        [self applyOps:__ops on:__layer]; \
+//STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__from, 0.001, \
+//                                   @"currentViewPosition.x of %@ not at %f as expected before ops", __layer, __from); \
+//        STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentWidth, (CGFloat)__oldWidth, 0.001, \
+//                                   @"currentWidth of %@ not %f as expected before ops", __layer, __oldWidth); \
+//        [self applyOps:__ops on:__layer]; \
         STAssertEqualsWithAccuracy(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__to, 0.001, \
                                    @"currentViewPosition.x of %@ not at %f as expected after ops %@", \
                                    __layer, __to, __ops); \
@@ -125,117 +120,107 @@ snapping prio:   1          3                            2      4
              __layer.layeredNavigationItem.currentViewPosition.x, \
              __oldWidth, __newWidth)
 
+#define AssertLayer(__layer, __initPos, __currentPos, __currentWidth) \
+    do { \
+        STAssertEquals(__layer.layeredNavigationItem.initialViewPosition.x, (CGFloat)__initPos, \
+                       @"initialViewPosition is wrong", nil); \
+        STAssertEquals(__layer.layeredNavigationItem.currentViewPosition.x, (CGFloat)__currentPos, \
+                       @"currentViewPosition is wrong", nil); \
+        STAssertEquals(__layer.layeredNavigationItem.currentWidth, (CGFloat)__currentWidth, \
+                       @"currentWidth is wrong", nil); \
+    } while (0)
+
 - (void)testLayerModelChanges
 {
-    FRLayerControllersOperations *ops;
+    [self.model setWidth:50];
 
-    ops = [self.model setWidth:50];
-    STAssertEquals(ops.count, 0U, nil);
+    CGFloat from = [self.model pushLayerController:self.layer1];
+    STAssertEquals(from, (CGFloat)50.0, nil);
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
 
-    ops = [self.model pushLayerController:self.layer1];
-    STAssertEquals(ops.count, 1U, nil);
-    AssertMoves(self.layer1, ops, 50, 0);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
+    [self.model setWidth:90];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
 
-    ops = [self.model setWidth:90];
-    STAssertEquals(ops.count, 0U, nil);
+    from = [self.model pushLayerController:self.layer2];
+    STAssertEquals(from, (CGFloat)100.0, nil);
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
 
-    ops = [self.model pushLayerController:self.layer2];
-    STAssertEquals(ops.count, 1U, nil);
-    AssertNoOp(self.layer1, ops);
-    AssertMoves(self.layer2, ops, 90, SNAP_A);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
+    [self.model setWidth:209]; // no fit with snapping point B
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
 
-    ops = [self.model setWidth:209]; // not fit with snapping point B
-    STAssertEquals(ops.count, 0U, nil);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
+    [self.model setWidth:210]; // exact fit with snapping point B
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
 
-    ops = [self.model setWidth:210]; // exact fit with snapping point B
-    STAssertEquals(ops.count, 1U, nil);
-    AssertMoves(self.layer2, ops, SNAP_A, SNAP_B);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
+    [self.model pushLayerController:self.layer3]; // no fit with snapping point B
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
 
-    ops = [self.model pushLayerController:self.layer3]; // no fit with snapping point B
-    STAssertEquals(ops.count, 2U, nil);
-    AssertMoves(self.layer2, ops, SNAP_B, SNAP_A);
-    AssertMoves(self.layer3, ops, 210, SNAP_A + WIDTH_2);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_A + WIDTH_2, nil);
+    [self.model setWidth:300]; // exact fit with snapping point B
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, WIDTH_3);
 
-    ops = [self.model setWidth:300]; // exact fit with snapping point B
-    STAssertEquals(ops.count, 2U, nil);
-    AssertMoves(self.layer2, ops, SNAP_A, SNAP_B);
-    AssertMoves(self.layer3, ops, SNAP_A + WIDTH_2, SNAP_B + WIDTH_2);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2, nil);
+    [self.model setWidth:320]; // even more space
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, WIDTH_3 + 20);
 
-    ops = [self.model setWidth:320]; // even more space
-    STAssertEquals(ops.count, 1U, nil);
-    AssertResize(self.layer3, ops, WIDTH_3, WIDTH_3 + 20);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2, nil);
+    [self.model setWidth:220]; // no fit with snapping point B
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
 
-    ops = [self.model setWidth:220]; // no fit with snapping point B
-    STAssertEquals(ops.count, 3U, nil);
-    AssertMoves(self.layer2, ops, SNAP_B, SNAP_A);
-    AssertOp(self.layer3, ops, SNAP_B + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3 + 20, WIDTH_3);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_A + WIDTH_2, nil);
+    [self.model popLayerController]; // fit with right margin of layer1
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, WIDTH_1, WIDTH_1, WIDTH_2);
 
-    ops = [self.model popLayerController:NULL]; // fit with snapping point B
-    STAssertEquals(ops.count, 1U, nil);
-    AssertMoves(self.layer2, ops, SNAP_A, SNAP_B);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
+    [self.model setWidth:209]; // not fit with snapping point B
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
 
-    ops = [self.model setWidth:209]; // not fit with snapping point B
-    STAssertEquals(ops.count, 1U, nil);
-    AssertMoves(self.layer2, ops, SNAP_B, SNAP_A);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
+    from = [self.model pushLayerController:self.layer3];
+    STAssertEquals(from, (CGFloat)209.0, nil);
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
 
-    ops = [self.model pushLayerController:self.layer3];
-    STAssertEquals(ops.count, 1U, nil);
-    AssertMoves(self.layer3, ops, 209, SNAP_A + WIDTH_2);
-    STAssertEquals(self.layer3.layeredNavigationItem.currentWidth, WIDTH_3, nil);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_A, nil);
-    // EVERYTHING OK UNITL HERE
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_A + WIDTH_2, nil);
+    // EVERYTHING OK UNTIL HERE
 
-    ops = [self.model setWidth:390]; // fits exactly with snapping points B and D (if layer4 is pushed soon)
-    STAssertEquals(ops.count, 2U, nil);
-    AssertMoves(self.layer2, ops, SNAP_A, SNAP_B);
-    AssertOp(self.layer3, ops, SNAP_A + WIDTH_2, SNAP_B + WIDTH_2, WIDTH_3, WIDTH_3 + 180);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2, nil);
+    [self.model setWidth:390]; // fits exactly with snapping points B and D (if layer4 is pushed soon)
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, 390 - SNAP_B - WIDTH_2);
 
-    ops = [self.model pushLayerController:self.layer4]; // fit with B and D
-    STAssertEquals(ops.count, 1U, nil);
-    AssertMoves(self.layer4, ops, 390, SNAP_B + WIDTH_2 + SNAP_D);
-    STAssertEquals(self.layer4.layeredNavigationItem.currentWidth, WIDTH_4, nil);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2, nil);
-    STAssertEquals(self.layer4.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2 + SNAP_D, nil);
+    [self.model pushLayerController:self.layer4]; // fit with B and D
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, 390 - SNAP_B - WIDTH_2);
+    AssertLayer(self.layer4, SNAP_B + WIDTH_2 + SNAP_D, SNAP_B + WIDTH_2 + SNAP_D, WIDTH_4);
+    
+    [self.model setWidth:410]; // move layer2 to the right, extend layer4
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, WIDTH_1, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, 410 - WIDTH_1 - WIDTH_2);
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_4 + 10);
 
-    ops = [self.model setWidth:410]; // resize layer3 and layer4
-    STAssertEquals(ops.count, 2U, nil);
-    AssertResize(self.layer3, ops, WIDTH_3, WIDTH_3 + 180 + 20);
-    AssertResize(self.layer4, ops, WIDTH_4, WIDTH_4 + 20);
-    STAssertEquals(self.layer1.layeredNavigationItem.initialViewPosition.x, (CGFloat)0, nil);
-    STAssertEquals(self.layer2.layeredNavigationItem.initialViewPosition.x, SNAP_B, nil);
-    STAssertEquals(self.layer3.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2, nil);
-    STAssertEquals(self.layer4.layeredNavigationItem.initialViewPosition.x, SNAP_B + WIDTH_2 + SNAP_D, nil);
+    [self.model setWidth:420]; // move layer4 to the right but shrink it
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, WIDTH_1, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, 420 - WIDTH_1 - WIDTH_2);
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3, WIDTH_4);
+    
+    [self.model setWidth:50];
+    [self.model setWidth:420]; // again, different starting point
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, WIDTH_3 + 30);
+    AssertLayer(self.layer4, SNAP_B + WIDTH_2 + WIDTH_3, SNAP_B + WIDTH_2 + WIDTH_3, WIDTH_4 + 10);
 
+    /*
     ops = [self.model setWidth:380]; // fit with B and C
     STAssertEquals(ops.count, 2U, nil);
     AssertResize(self.layer3, ops, WIDTH_3 + 180 + 20, WIDTH_3 + 180 + 20 - 30);
@@ -270,6 +255,7 @@ snapping prio:   1          3                            2      4
     STAssertEquals(ops.count, 2U, nil);
     AssertResize(self.layer3, ops, 140, 90);
     AssertResize(self.layer4, ops, 120, 110);
+     */
 }
 
 

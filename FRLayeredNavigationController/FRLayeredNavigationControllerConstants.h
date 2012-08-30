@@ -14,5 +14,6 @@
 #define FRLayeredNavigationControllerSnappingVelocityThreshold ((float)100)
 
 #define FRLayeredNavigationControllerSnappingPointDefaultPriority 0
-#define FRLayeredNavigationControllerWidthAdjustDefaultPriority 100
+#define FRLayeredNavigationControllerResizeDefaultPriority 100
+#define FRLayeredNavigationControllerRightMarginSnappingDefaultPriority 150
 #define FRLayeredNavigationControllerNoNextItemDistance (-1)

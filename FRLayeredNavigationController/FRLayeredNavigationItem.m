@@ -71,7 +71,8 @@
     if ((self = [super init])) {
         self->_width = -1;
         self->_nextItemDistance = FRLayeredNavigationControllerNoNextItemDistance;
-        self->_widthAdjustPriority = FRLayeredNavigationControllerWidthAdjustDefaultPriority;
+        self->_resizePriority = FRLayeredNavigationControllerResizeDefaultPriority;
+        self->_rightMarginSnappingPriority = FRLayeredNavigationControllerRightMarginSnappingDefaultPriority;
         self->_hasChrome = YES;
         self->_displayShadow = YES;
         self.internalSnappingPoints = [NSMutableSet set];
@@ -133,7 +134,8 @@
 @synthesize title = _title;
 @synthesize titleView = _titleView;
 @synthesize width = _width;
-@synthesize widthAdjustPriority = _widthAdjustPriority;
+@synthesize resizePriority = _resizePriority;
+@synthesize rightMarginSnappingPriority = _rightMarginSnappingPriority;
 @synthesize nextItemDistance = _nextItemDistance;
 @synthesize hasChrome = _hasChrome;
 @synthesize displayShadow = _displayShadow;

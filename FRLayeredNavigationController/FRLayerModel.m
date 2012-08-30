@@ -12,18 +12,118 @@
 #import "FRLayeredNavigationControllerConstants.h"
 #import "Utils.h"
 
-@interface FRLayerModel ()
-@property (nonatomic, strong) NSMutableArray *viewControllers;
-- (NSMutableArray *)doLayout;
+#pragma mark Helper classes
+
+@interface FRLayoutOperation : NSObject {
+@private
+    NSInteger _priority;
+}
+- (NSInteger)priority;
+- (id)initWithPriority:(NSInteger)prio;
 @end
 
-@interface FRLayerControllerOperation ()
-@property (nonatomic, strong) FRLayerController *layerController;
-@property (nonatomic, assign) CGFloat xTranslation;
-@property (nonatomic, assign) CGFloat widthChange;
-- (id)initWithLayerController:(FRLayerController *)layerController
-                 xTranslation:(CGFloat)xTranslation
-                  widthChange:(CGFloat)widthChange;
+@implementation FRLayoutOperation
+- (id)initWithPriority:(NSInteger)prio
+{
+    if ((self = [super init])) {
+        self->_priority = prio;
+    }
+    return self;
+}
+
+- (NSInteger)priority
+{
+    return self->_priority;
+}
+@end
+
+@interface FRLayoutOperationSnappingPoint : FRLayoutOperation {
+    @private
+    CGFloat _snapPointX;
+    NSInteger _nextIndex;
+    FRLayerController *_controller;
+}
+@property (nonatomic, strong) FRLayerController *controller;
+- (CGFloat)snapPointX;
+- (NSInteger)nextIndex;
+- (id)initWithPriority:(NSInteger)prio
+            controller:(FRLayerController *)controller
+            snapPointX:(CGFloat)snapPointX
+             nextIndex:(NSInteger)nextIndex;
+@end
+
+@implementation FRLayoutOperationSnappingPoint
+
+@synthesize controller = _controller;
+
+- (id)initWithPriority:(NSInteger)prio
+            controller:(FRLayerController *)controller
+            snapPointX:(CGFloat)snapPointX
+             nextIndex:(NSInteger)nextIndex
+{
+    if ((self = [super initWithPriority:prio])) {
+        self->_snapPointX = snapPointX;
+        self->_nextIndex = nextIndex;
+        self.controller = controller;
+    }
+    return self;
+}
+
+- (CGFloat)snapPointX
+{
+    return self->_snapPointX;
+}
+
+- (NSInteger)nextIndex
+{
+    return self->_nextIndex;
+}
+@end
+
+@interface FRLayoutOperationRightMargin : FRLayoutOperation {
+    @private
+    NSInteger _nextIndex;
+    FRLayerController *_controller;
+}
+@property (nonatomic, strong) FRLayerController *controller;
+- (NSInteger)nextIndex;
+- (id)initWithPriority:(NSInteger)prio
+            controller:(FRLayerController *)controller
+             nextIndex:(NSInteger)nextIndex;
+@end
+
+@implementation FRLayoutOperationRightMargin
+
+@synthesize controller = _controller;
+
+- (id)initWithPriority:(NSInteger)prio
+            controller:(FRLayerController *)controller
+             nextIndex:(NSInteger)nextIndex
+{
+    if ((self = [super initWithPriority:prio])) {
+        self->_nextIndex = nextIndex;
+        self.controller = controller;
+    }
+    return self;
+}
+
+- (NSInteger)nextIndex
+{
+    return self->_nextIndex;
+}
+@end
+
+@interface FRLayoutOperationResize : FRLayoutOperation
+@end
+
+@implementation FRLayoutOperationResize
+@end
+
+#pragma mark Model implementation
+
+@interface FRLayerModel ()
+@property (nonatomic, strong) NSMutableArray *viewControllers;
+- (void)doLayout;
 @end
 
 @implementation FRLayerModel
@@ -34,6 +134,8 @@
     }
     return self;
 }
+
+#pragma mark Public API
 
 - (NSArray *)layeredViewControllers {
     return [self.viewControllers copy];
@@ -56,64 +158,112 @@
     }
 }
 
-- (NSInteger)highestPriorityLowerThan:(NSInteger)n {
-    NSInteger maxFound = -1;
-    for (FRLayerController *lc in self.viewControllers) {
-        for (FRLayerSnappingPoint *snapPoint in lc.layeredNavigationItem.snappingPoints) {
-            if (snapPoint.priority < n && snapPoint.priority > maxFound) {
-                maxFound = snapPoint.priority;
-            }
-        }
-    }
-    return maxFound;
-}
-
-#define MAX_INT 100000
-
-- (NSInteger)lowestPriorityHigherThan:(NSInteger)n {
-    NSInteger minFound = MAX_INT;
-    for (FRLayerController *lc in self.viewControllers) {
-        for (FRLayerSnappingPoint *snapPoint in lc.layeredNavigationItem.snappingPoints) {
-            if (snapPoint.priority > n && snapPoint.priority < minFound) {
-                minFound = snapPoint.priority;
-            }
-        }
-    }
-    return minFound;
-}
-
-- (void)enumerateSnappingPointsAsc:(BOOL)asc block:(void (^)(FRLayerController *ctrl,
-                                                             FRLayerSnappingPoint *snapPoint,
-                                                             NSArray *nextVCs,
-                                                             BOOL *stop))block
-{
-    // brain-dead implementation for now;
-    NSInteger prio = asc ? -1 : MAX_INT;
-    while (asc ? (prio < MAX_INT) : (prio >= 0)) {
-        if (asc) {
-            prio = [self lowestPriorityHigherThan:prio];
+- (CGFloat)pushLayerController:(FRLayerController *)ctrl {
+    FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+    CGFloat neededWidth;
+    BOOL useMaxWidth = ctrl.maximumWidth;
+    if (item.width <= 0) {
+        if (useMaxWidth) {
+            neededWidth = FRLayeredNavigationControllerStandardMiniumWidth;
         } else {
-            prio = [self highestPriorityLowerThan:prio];
+            neededWidth = FRLayeredNavigationControllerStandardWidth;
         }
-        NSArray *vcs = self.viewControllers;
-        for (NSInteger i = asc ? (vcs.count - 1) : 0; asc ? (i >= 0) : (i < vcs.count); asc ? i-- : i++) {
-            FRLayerController *ctrl = [vcs objectAtIndex:i];
-            for (FRLayerSnappingPoint *snapPoint in ctrl.layeredNavigationItem.snappingPoints) {
-                if (snapPoint.priority == prio) {
-                    NSArray *nextVcs = [NSArray array];
-                    if (i < vcs.count - 1) {
-                        NSRange theRange;
-                        theRange.location = i + 1;
-                        theRange.length = vcs.count - 1 - i;
-                        nextVcs = [vcs subarrayWithRange:theRange];
-                    }
-                    BOOL stop = NO;
-                    block(ctrl, snapPoint, nextVcs, &stop);
-                    if (stop) {
-                        return;
-                    }
-                }
+    } else {
+        neededWidth = item.width;
+    }
+    item.currentWidth = neededWidth;
+    if (self.viewControllers.count == 0) {
+        item.currentViewPosition = FRPointSetX(item.currentViewPosition, 0);
+        item.initialViewPosition = FRPointSetX(item.initialViewPosition, 0);
+        [self.viewControllers  addObject:ctrl];
+        return self->_width;
+    } else {
+        CGFloat rightX = [self widthOfAllLayers];
+        item.currentViewPosition = FRPointSetX(item.currentViewPosition, rightX);
+        item.initialViewPosition = FRPointSetX(item.initialViewPosition, rightX);
+        [self.viewControllers  addObject:ctrl];
+        [self doLayout];
+        return MAX(self->_width, rightX);
+    }
+}
+
+- (FRLayerController *)popLayerController {
+    NSInteger n = self.viewControllers.count;
+    if (n == 0) {
+        NSException *ex = [NSException exceptionWithName:NSRangeException
+                                                  reason:@"Attempt to pop FRLayerController from empty FRLayerModel"
+                                                userInfo:nil];
+        [ex raise];
+        return nil;
+    } else {
+        FRLayerController *ctrl = [self.viewControllers objectAtIndex:(n - 1)];
+        [self.viewControllers removeLastObject];
+        if (n > 1) {
+            [self doLayout];
+        }
+        return ctrl;
+    }
+}
+
+- (void)setWidth:(CGFloat)newWidth {
+    if (FRFloatEquals(self->_width, newWidth)) {
+        return;
+    } else {
+        self->_width = newWidth;
+        [self doLayout];
+    }
+}
+
+- (BOOL)areViewControllersMaximallyCompressed {
+    for (FRLayerController *lvc in self.viewControllers) {
+        if (lvc.layeredNavigationItem.currentViewPosition.x > lvc.layeredNavigationItem.initialViewPosition.x) {
+            return NO;
+        }
+    }
+    return YES;
+}
+
+#pragma mark Layout utilities
+
+- (void)enumerateSnappingPointsAsc:(BOOL)asc block:(void (^)(FRLayoutOperation *op, BOOL *stop))block
+{
+    NSMutableArray *arr = [NSMutableArray array];
+    for (NSInteger i = 0; i < self.viewControllers.count; i++) {
+        FRLayerController *ctrl = [self.viewControllers objectAtIndex:i];
+        FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+        NSInteger nextIndex = i + 1;
+        for (FRLayerSnappingPoint *snapPoint in item.snappingPoints) {
+            FRLayoutOperation *op = [[FRLayoutOperationSnappingPoint alloc] initWithPriority:snapPoint.priority
+                                                                                  controller:ctrl
+                                                                                  snapPointX:snapPoint.x
+                                                                                   nextIndex:nextIndex];
+            [arr addObject:op];
+        }
+        FRLayoutOperation *op = [[FRLayoutOperationRightMargin alloc] initWithPriority:item.rightMarginSnappingPriority
+                                                                            controller:ctrl
+                                                                             nextIndex:nextIndex];
+        [arr addObject:op];
+        if (i == self.viewControllers.count - 1) {
+            op = [[FRLayoutOperationResize alloc] initWithPriority:item.resizePriority];
+            [arr addObject:op];
+        }
+    }
+    NSArray *sorted = [arr sortedArrayUsingComparator:^(FRLayoutOperation *op1, FRLayoutOperation *op2) {
+            NSInteger p1 = op1.priority;
+            NSInteger p2 = op2.priority;
+            if (p1 < p2) {
+                return (asc ? NSOrderedAscending : NSOrderedDescending);
+            } else if (p1 > p2) {
+                return (asc ? NSOrderedDescending : NSOrderedAscending);
+            } else {
+                return NSOrderedSame;
             }
+        }];
+    for (FRLayoutOperation *op in sorted) {
+        BOOL stop = NO;
+        block(op, &stop);
+        if (stop) {
+            break;
         }
     }
 }
@@ -125,178 +275,121 @@
     return w;
 }
 
-- (FRSegment)makeSpace:(CGFloat)neededWidth
-          useAvailable:(BOOL)useAvailable
-            operations:(NSMutableArray *)operations
-{
-    FRLayerController *top = self.topLayerViewController;
-    if (top == nil) {
-        CGFloat w = useAvailable ? MAX(self->_width, neededWidth) : neededWidth;
-        FRSegment seg = FRMakeSegment(0.0, w);
-        return seg;
-    }
-    CGFloat currentWidth = [self widthOfAllLayers];
-    CGFloat availableWidth = self->_width - currentWidth;
-    if (availableWidth >= neededWidth) {
-        CGFloat w = useAvailable ? availableWidth : neededWidth;
-        FRSegment seg = FRMakeSegment(currentWidth, w);
-        return seg;
-    }
-    // ok, we really need to make some space
-    CGFloat widthStillNeeded = neededWidth - availableWidth;
-    __block CGFloat savedSpace = 0.0;
-    __block CGFloat newX = currentWidth;
-    [self enumerateSnappingPointsAsc:NO block:^(FRLayerController *ctrl,
-                                                FRLayerSnappingPoint *snapPoint,
-                                                NSArray *nextVCs,
-                                                BOOL *stop)
-    {
-        FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
-        CGFloat snapPointAbsX = item.currentViewPosition.x + snapPoint.x;
-        if (nextVCs.count > 0) {
-            FRLayerController *next = [nextVCs objectAtIndex:0];
-            FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
-            // possibly move next to the left
-            CGFloat xTrans = snapPointAbsX - nextItem.currentViewPosition.x;
-            if (xTrans < 0) {
-                // do the move
-                for (FRLayerController *vc in nextVCs) {
-                    FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc] initWithLayerController:vc
-                                                                                                    xTranslation:xTrans
-                                                                                                     widthChange:0.0];
-                    [operations addObject:op];
-                }
-                savedSpace += -xTrans;
-                newX = newX + xTrans;
+- (void)fillSpace {
+    CGFloat w = self->_width;
+    for (FRLayerController *lc in self.viewControllers) {
+        if (lc.maximumWidth) {
+            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+            CGFloat add = w - (item.currentViewPosition.x + item.currentWidth);
+            if (add > 0) {
+                item.currentWidth += add;
             }
-        } else {
-            // ctrl is the current topmost layer (below the layer to be pushed)
-            newX = snapPointAbsX;
         }
-        if (savedSpace >= widthStillNeeded) {
-            *stop = YES;
-        }
-    }];
-    CGFloat w = useAvailable ? MAX(availableWidth + savedSpace, neededWidth) : neededWidth;
-    FRSegment seg = FRMakeSegment(newX, w);
-    return seg;
+    }   
 }
 
-- (FRLayerControllersOperations *)pushLayerController:(FRLayerController *)ctrl {
-    NSMutableArray *ops = [NSMutableArray array];
-    // make space for new layer
-    BOOL useMaxWidth = ctrl.maximumWidth;
+#pragma mark Enlarging
+
+// Returns the space made available. The result is never larger than the space parameter.
+- (CGFloat)enlargeByResizing:(CGFloat)space
+{
+    CGFloat before = [self widthOfAllLayers];
+    for (FRLayerController *lc in self.viewControllers) {
+        if (lc.maximumWidth) {
+            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+            item.currentWidth += space;
+        }
+    }
+    return [self widthOfAllLayers] - before;
+}
+
+// Returns the space made available. The result is never larger than the availableSpace parameter.
+// Returns -1 if no further enlargements possible
+- (CGFloat)enlargeByMovingToSnappingPoint:(CGFloat)snapPointX
+                               controller:(FRLayerController *)ctrl
+                                nextIndex:(NSInteger)nextIndex
+                           availableSpace:(CGFloat)availableSpace
+                   setInitialViewPosition:(BOOL)setInitialViewPosition
+{
     FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
-    CGFloat newLayerWidth = item.width;
-    CGFloat neededWidth;
-    if (newLayerWidth <= 0) {
-        if (useMaxWidth) {
-            neededWidth = FRLayeredNavigationControllerStandardMiniumWidth;
-        } else {
-            neededWidth = FRLayeredNavigationControllerStandardWidth;
+    CGFloat snapPointAbsX = item.currentViewPosition.x + snapPointX;
+    CGFloat spaceGained = 0;
+    NSArray *vcs = self.viewControllers;
+    if (nextIndex < vcs.count) {
+        FRLayerController *next = [vcs objectAtIndex:nextIndex];
+        FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
+        if (nextItem.initialViewPosition.x < snapPointAbsX) {
+            CGFloat transX = snapPointAbsX - nextItem.currentViewPosition.x;
+            if (transX > 0) {
+                if (transX > availableSpace) {
+                    return -1;
+                } else {
+                    spaceGained = transX;
+                    // move layers to the right
+                    for (NSInteger i = nextIndex; i < vcs.count; i++) {
+                        FRLayerController *lc = [vcs objectAtIndex:i];
+                        FRLayeredNavigationItem *lcItem = lc.layeredNavigationItem;
+                        lcItem.currentViewPosition = FRPointTransX(lcItem.currentViewPosition, transX);
+                        if (lc != next) { // dealt with later
+                            lcItem.initialViewPosition = FRPointTransX(lcItem.initialViewPosition, transX);
+                        }
+                    }
+                }
+            }
+            if (setInitialViewPosition) {
+                // move nextItem.initialViewPosition to the right
+                nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
+            }
         }
-    } else {
-        neededWidth = newLayerWidth;
     }
-    FRSegment seg = [self makeSpace:neededWidth
-                       useAvailable:useMaxWidth
-                         operations:ops];
-
-    // slide in new layer
-    CGFloat startX = MAX(self->_width, seg.x);
-    item.currentWidth = seg.width;
-    item.currentViewPosition = FRPointSetX(item.currentViewPosition, startX);
-    CGFloat xTrans = seg.x - startX;
-    FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc] initWithLayerController:ctrl
-                                                                                    xTranslation:xTrans
-                                                                                     widthChange:0.0];
-    [ops addObject:op];
-
-    // update initialViewPosition
-    FRLayerController *top = self.topLayerViewController;
-    FRLayeredNavigationItem *topItem = top.layeredNavigationItem;
-    if (top != nil && seg.x < topItem.currentViewPosition.x + topItem.currentWidth) {
-        item.initialViewPosition = FRPointSetX(item.initialViewPosition, seg.x - xTrans);
-    } else {
-        // compensate for slide-in
-        item.initialViewPosition = FRPointSetX(item.initialViewPosition, -xTrans);
-    }
-    // update internal datastructures
-    [self.viewControllers  addObject:ctrl];
-
-    // return result
-    return ops;
+    return spaceGained;
 }
 
-- (FRLayerControllersOperations *)popLayerController:(FRLayerController **)ctrlPtr {
-    NSInteger n = self.viewControllers.count;
-    if (n == 0) {
-        NSException *ex = [NSException exceptionWithName:NSRangeException
-                                                  reason:@"Attempt to pop FRLayerController from empty FRLayerModel"                                                userInfo:nil];
-        [ex raise];
-        return nil;
-    } else {
-        FRLayerController *ctrl = [self.viewControllers objectAtIndex:(n - 1)];
-        if (ctrlPtr != NULL) {
-            *ctrlPtr = ctrl;
-        }
-        [self.viewControllers removeLastObject];
-        return [self doLayout];
-    }
+- (CGFloat)enlargeByMovingToRightMarginOf:(FRLayerController *)ctrl
+                                nextIndex:(NSInteger)nextIndex
+                           availableSpace:(CGFloat)availableSpace
+{
+    FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+    return [self enlargeByMovingToSnappingPoint:item.currentWidth
+                                     controller:ctrl
+                                      nextIndex:nextIndex
+                                 availableSpace:availableSpace
+                         setInitialViewPosition:NO];
 }
 
-- (void)enlargeBy:(CGFloat)space operations:(NSMutableArray *)operations {
+- (void)enlargeBy:(CGFloat)space {
     __block CGFloat spaceStillAvailable = space;
     // move initialViewPositions
-    [self enumerateSnappingPointsAsc:YES block:^(FRLayerController *ctrl,
-                                                 FRLayerSnappingPoint *snapPoint,
-                                                 NSArray *nextVCs,
+    [self enumerateSnappingPointsAsc:YES block:^(FRLayoutOperation *op,
                                                  BOOL *stop)
      {
-         FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
-         CGFloat snapPointAbsX = item.currentViewPosition.x + snapPoint.x;
-         if (nextVCs.count > 0) {
-             FRLayerController *next = [nextVCs objectAtIndex:0];
-             FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
-             if (nextItem.initialViewPosition.x < snapPointAbsX) {
-                 CGFloat transX = snapPointAbsX - nextItem.currentViewPosition.x;
-                 if (transX > 0) {
-                     if (transX > spaceStillAvailable) {
-                         *stop = YES;
-                     } else {
-                         spaceStillAvailable = spaceStillAvailable - transX;
-                         // move layers the right
-                         for (FRLayerController *lc in nextVCs) {
-                             FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc]
-                                                               initWithLayerController:lc
-                                                                          xTranslation:transX
-                                                                           widthChange:0.0];
-                             [operations addObject:op];
-                         }
-                         // adjust initialViewPosition, compensate for transCurX
-                         nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition,
-                                                                    snapPointAbsX - transX);
-                     }
-                 } else {
-                     // only move nextItem.initialViewPosition to the right
-                     nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
-                 }
-             }
+         CGFloat spaceGained = -1;
+         if ([op.class isSubclassOfClass:FRLayoutOperationSnappingPoint.class]) {
+             FRLayoutOperationSnappingPoint *snapOp = (FRLayoutOperationSnappingPoint *)op;
+             spaceGained = [self enlargeByMovingToSnappingPoint:snapOp.snapPointX
+                                                     controller:snapOp.controller
+                                                      nextIndex:snapOp.nextIndex
+                                                 availableSpace:spaceStillAvailable
+                                         setInitialViewPosition:YES];
+         } else if ([op.class isSubclassOfClass:FRLayoutOperationRightMargin.class]) {
+             FRLayoutOperationRightMargin *rightMargin = (FRLayoutOperationRightMargin *)op;
+             spaceGained = [self enlargeByMovingToRightMarginOf:rightMargin.controller
+                                                      nextIndex:rightMargin.nextIndex
+                                                 availableSpace:spaceStillAvailable];
+         } else {
+             spaceGained = [self enlargeByResizing:spaceStillAvailable];
+         }
+         NSAssert(spaceGained <= spaceStillAvailable, @"spaceGained > spaceStillAvailable");
+         if (spaceGained < 0) {
+             *stop = YES;
+         } else {
+             spaceStillAvailable = spaceStillAvailable - spaceGained;
          }
      }];
-     // enlarge
-     if (spaceStillAvailable > 0) {
-         for (FRLayerController *lc in self.viewControllers) {
-             if (lc.maximumWidth) {
-                 FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc]
-                                                   initWithLayerController:lc
-                                                              xTranslation:0.0
-                                                               widthChange:spaceStillAvailable];
-                 [operations addObject:op];
-             }
-         }
-     }
+    [self fillSpace];
 }
+
+#pragma mark Shrinking
 
 - (CGFloat)maxShrinkByResizing {
     CGFloat shrink = -1;
@@ -313,173 +406,95 @@
     return MAX(0, shrink);
 }
 
-- (void)shrinkBy:(CGFloat)space operations:(NSMutableArray *)operations {
-    if (space <= 0) {
-        return;
-    }
-    CGFloat shrinkByResizing = [self maxShrinkByResizing];
-    if (shrinkByResizing > 0) {
+// Returns the space gained by resizing.
+- (CGFloat)shrinkByResizing:(CGFloat)space {
+    CGFloat before = [self widthOfAllLayers];
+    CGFloat f = MIN(space, [self maxShrinkByResizing]);
+    if (f > 0) {
         for (FRLayerController *lc in self.viewControllers) {
             if (lc.maximumWidth) {
-                FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc]
-                                                  initWithLayerController:lc
-                                                  xTranslation:0.0
-                                                  widthChange:-shrinkByResizing];
-            [operations addObject:op];
+                lc.layeredNavigationItem.currentWidth = f;
             }
         }
-        space = space - shrinkByResizing;
     }
+    return before - [self widthOfAllLayers];
+}
+
+// Returns the space gained by moving the the given snap point.
+- (CGFloat) shrinkByMovingToSnappingPoint:(CGFloat)snapPointX
+                               controller:(FRLayerController *)ctrl
+                                nextIndex:(NSInteger)nextIndex
+                              spaceNeeded:(CGFloat)spaceNeeded
+{
+    FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+    CGFloat snapPointAbsX = item.currentViewPosition.x + snapPointX;
+    CGFloat spaceLost = 0;
+    NSArray *vcs = self.viewControllers;
+    if (nextIndex < vcs.count) {
+        FRLayerController *next = [vcs objectAtIndex:nextIndex];
+        FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
+        if (nextItem.initialViewPosition.x > snapPointAbsX) {
+            CGFloat transX = snapPointAbsX - nextItem.currentViewPosition.x;
+            if (transX < 0) {
+                spaceLost = -transX;
+                // move layers the left
+                for (NSInteger i = nextIndex; i < vcs.count; i++) {
+                    FRLayerController *lc = [vcs objectAtIndex:i];
+                    FRLayeredNavigationItem *lcItem = lc.layeredNavigationItem;
+                    lcItem.currentViewPosition = FRPointTransX(lcItem.currentViewPosition, transX);
+                    if (lc != next) { // dealt with later
+                        lcItem.initialViewPosition = FRPointTransX(lcItem.initialViewPosition, transX);
+                    }
+                }
+            }
+            // move nextItem.initialViewPosition to the right
+            nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
+        }
+    }
+    return spaceLost;
+}
+
+- (void)shrinkBy:(CGFloat)space {
     if (space <= 0) {
         return;
     }
-
-    __block CGFloat spaceStillNeeded = space;
-    // move initialViewPositions
-    [self enumerateSnappingPointsAsc:NO block:^(FRLayerController *ctrl,
-                                                 FRLayerSnappingPoint *snapPoint,
-                                                 NSArray *nextVCs,
+    __block CGFloat spaceNeeded = space;
+    [self enumerateSnappingPointsAsc:NO block:^(FRLayoutOperation *op,
                                                  BOOL *stop)
      {
-         if (spaceStillNeeded <= 0) {
-             *stop = YES;
+         CGFloat spaceLost = 0;
+         if ([op.class isSubclassOfClass:FRLayoutOperationSnappingPoint.class]) {
+             FRLayoutOperationSnappingPoint *snapOp = (FRLayoutOperationSnappingPoint *)op;
+             spaceLost = [self shrinkByMovingToSnappingPoint:snapOp.snapPointX
+                                                  controller:snapOp.controller
+                                                   nextIndex:snapOp.nextIndex
+                                                 spaceNeeded:spaceNeeded];
+         } else if ([op.class isSubclassOfClass:FRLayoutOperationRightMargin.class]) {
+             // do nothing
          } else {
-             FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
-             CGFloat snapPointAbsX = item.currentViewPosition.x + snapPoint.x;
-             if (nextVCs.count > 0) {
-                 FRLayerController *next = [nextVCs objectAtIndex:0];
-                 FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
-                 if (snapPointAbsX < nextItem.initialViewPosition.x) {
-                     nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
-                 }
-                 CGFloat transX = nextItem.initialViewPosition.x - nextItem.currentViewPosition.x;
-                 if (transX < 0) {
-                     spaceStillNeeded = spaceStillNeeded + transX;
-                     // move layers the left
-                     for (FRLayerController *lc in nextVCs) {
-                         FRLayerControllerOperation *op = [[FRLayerControllerOperation alloc]
-                                                           initWithLayerController:lc
-                                                                      xTranslation:transX
-                                                                       widthChange:0.0];
-                         [operations addObject:op];
-                     }
-                     // compensate for transX on initialViewPosition
-                     nextItem.initialViewPosition = FRPointTransX(nextItem.initialViewPosition, -transX);
-                 }
-             }
+             spaceLost = [self shrinkByResizing:spaceNeeded];
+         }
+         spaceNeeded = spaceNeeded - spaceLost;
+         if (spaceNeeded <= 0) {
+             *stop = YES;
          }
      }];
-}
-
-- (NSMutableArray *)doLayout {
-    CGFloat curWidth = [self widthOfAllLayers];
-    NSMutableArray *ops = [NSMutableArray array];
-    if (curWidth < self->_width) {
-        [self enlargeBy:(self->_width - curWidth) operations:ops];
-    } else {
-        [self shrinkBy:(curWidth - self->_width) operations:ops];
+    // compensate moving to far to the left by resizing
+    if (spaceNeeded < 0) {
+        [self enlargeByResizing:-spaceNeeded];
     }
-    return ops;
+    [self fillSpace];
 }
 
-- (FRLayerControllersOperations *)setWidth:(CGFloat)newWidth {
-    if (FRFloatEquals(self->_width, newWidth)) {
-        return [NSArray array];
-    } else {
-        self->_width = newWidth;
-        return [self doLayout];
-    }
-}
-
-- (BOOL)areViewControllersMaximallyCompressed {
-    for (FRLayerController *lvc in self.viewControllers) {
-        if (lvc.layeredNavigationItem.currentViewPosition.x > lvc.layeredNavigationItem.initialViewPosition.x) {
-            return NO;
-        }
-    }
-    return YES;
-}
-
-@end
-
-@implementation FRLayerControllerOperation
-
-- (id)initWithLayerController:(FRLayerController *)layerController
-                 xTranslation:(CGFloat)xTranslation
-                  widthChange:(CGFloat)widthChange
-{
-    if ((self = [super init])) {
-        self.layerController = layerController;
-        self.xTranslation = xTranslation;
-        self.widthChange = widthChange;
-    }
-    return self;
-}
-
-- (NSString *)description {
-    return [NSString stringWithFormat:@"FRLayerControllerOperation {"
-            @" layerController=%@, xTranslation=%f, widthChange=%f }",
-            self.layerController, self.xTranslation, self.widthChange];
-}
-
-@synthesize layerController = _layerController;
-@synthesize xTranslation = _xTranslation;
-@synthesize widthChange = _widthChange;
-
-@end
-
-/*
-
+# pragma mark Layout
 
 - (void)doLayout {
-    for (FRLayerController *vc in self.layeredViewControllers) {
-        CGRect f = vc.view.frame;
-        if (vc.layeredNavigationItem.currentViewPosition.x < vc.layeredNavigationItem.initialViewPosition.x) {
-            vc.layeredNavigationItem.currentViewPosition = vc.layeredNavigationItem.initialViewPosition;
-        }
-        f.origin = vc.layeredNavigationItem.currentViewPosition;
-
-        if (vc.maximumWidth) {
-            f.size.width = MAX(vc.layeredNavigationItem.width,
-                               CGRectGetWidth(self.view.bounds) - vc.layeredNavigationItem.initialViewPosition.x);
-            vc.layeredNavigationItem.width = CGRectGetWidth(f);
-        }
-
-        f.size.height = CGRectGetHeight(self.view.bounds);
-
-        vc.view.frame = f;
+    CGFloat curWidth = [self widthOfAllLayers];
+    if (curWidth < self->_width) {
+        [self enlargeBy:(self->_width - curWidth)];
+    } else if (self->_width < curWidth) {
+        [self shrinkBy:(curWidth - self->_width)];
     }
 }
+@end
 
-- (void)push {
-    const CGFloat overallWidth = CGRectGetWidth(self.view.bounds) > 0 ?
-    CGRectGetWidth(self.view.bounds) :
-    [self getScreenBoundsForCurrentOrientation].size.width;
-
-    CGFloat width;
-    if (navItem.width > 0) {
-        width = navItem.width;
-    } else {
-        width = newVC.maximumWidth ? overallWidth - initX : FRLayeredNavigationControllerStandardWidth;
-        navItem.width = width;
-    }
-
-    CGRect onscreenFrame = CGRectMake(newVC.layeredNavigationItem.currentViewPosition.x,
-                                      newVC.layeredNavigationItem.currentViewPosition.y,
-                                      width,
-                                      CGRectGetHeight(self.view.bounds));
-    CGRect offscreenFrame = CGRectMake(MAX(1024, CGRectGetMinX(onscreenFrame)),
-                                       0,
-                                       CGRectGetWidth(onscreenFrame),
-                                       CGRectGetHeight(onscreenFrame));
-    newVC.view.frame = offscreenFrame;
-
-    // later (in animation block):
-    CGFloat saved = [self savePlaceWanted:CGRectGetMinX(onscreenFrame)+width-overallWidth];
-    newVC.view.frame = CGRectMake(CGRectGetMinX(onscreenFrame) - saved,
-                                  CGRectGetMinY(onscreenFrame),
-                                  CGRectGetWidth(onscreenFrame),
-                                  CGRectGetHeight(onscreenFrame));
-    newVC.layeredNavigationItem.currentViewPosition = newVC.view.frame.origin;
-}
- */

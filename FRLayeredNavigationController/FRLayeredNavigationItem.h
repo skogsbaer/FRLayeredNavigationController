@@ -52,7 +52,8 @@
     NSString *_title;
     UIView *_titleView;
     CGFloat _width;
-    NSInteger _widthAdjustPriority;
+    NSInteger _resizePriority;
+    NSInteger _rightMarginSnappingPriority;
     CGFloat _nextItemDistance;
     BOOL _hasChrome;
     BOOL _displayShadow;
@@ -87,7 +88,7 @@
  */
 @property (nonatomic, readwrite) CGFloat width;
 
-@property (nonatomic, readwrite) NSInteger widthAdjustPriority;
+@property (nonatomic, readwrite) NSInteger resizePriority;
 
 /**
  * The layer's current width in points. Managed by internaly by FRLayeredNavigationController.
@@ -119,6 +120,7 @@
  */
 @property (nonatomic, strong) UIBarButtonItem *rightBarButtonItem;
 
+@property (nonatomic, readwrite) NSInteger rightMarginSnappingPriority;
 - (void)addSnappingPointX:(CGFloat)x priority:(NSInteger)priority;
 - (NSSet *)snappingPoints;
 

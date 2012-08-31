@@ -265,6 +265,7 @@
         [self.viewControllers addObject:ctrl];
         return self->_width;
     } else {
+        [self backToMinimumWidth];
         CGFloat rightX = [self widthOfAllLayers];
         item.currentViewPosition = FRPointSetX(item.currentViewPosition, rightX);
         item.initialViewPosition = FRPointSetX(item.initialViewPosition, rightX);

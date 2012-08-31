@@ -32,6 +32,14 @@
 
 @class FRLayerController;
 
+/*
+ * Ordering of layout operations if explicit priorities are equal. We consider the case of shrinking here,
+ * enlarging is the inverse.
+ *
+ * - First we try to resize the layers.
+ * - Then we consider the snapping, starting at the lowest layer. In each layer, we consider the snapping
+ *   points from right to left.
+ */
 @interface FRLayerSnappingPoint : NSObject {
     @private
     CGFloat _x;

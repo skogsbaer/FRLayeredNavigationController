@@ -14,12 +14,55 @@
 
 #pragma mark Helper classes
 
+@class FRLayoutOperationSnappingPoint;
+@class FRLayoutOperationRightMargin;
+
 @interface FRLayoutOperation : NSObject {
 @private
     NSInteger _priority;
 }
+- (BOOL)isResize;
+- (BOOL)isSnappingPoint;
+- (BOOL)isRightMargin;
+- (FRLayoutOperationSnappingPoint *)asSnappingPoint;
+- (FRLayoutOperationRightMargin *)asRightMargin;
+- (NSInteger)layerIndex;
 - (NSInteger)priority;
 - (id)initWithPriority:(NSInteger)prio;
+@end
+
+@interface FRLayoutOperationSnappingPoint : FRLayoutOperation {
+    @private
+    CGFloat _snapPointX;
+    NSInteger _nextIndex;
+    FRLayerController *_controller;
+}
+@property (nonatomic, strong) FRLayerController *controller;
+- (CGFloat)snapPointX;
+- (NSInteger)nextIndex;
+
+- (id)initWithPriority:(NSInteger)prio
+            controller:(FRLayerController *)controller
+            snapPointX:(CGFloat)snapPointX
+             nextIndex:(NSInteger)nextIndex;
+@end
+
+@interface FRLayoutOperationRightMargin : FRLayoutOperation {
+    @private
+    NSInteger _nextIndex;
+    CGFloat _explicitSnapPointX;
+    FRLayerController *_controller;
+}
+@property (nonatomic, strong) FRLayerController *controller;
+- (NSInteger)nextIndex;
+- (CGFloat)explicitSnapPointX;
+- (id)initWithPriority:(NSInteger)prio
+            controller:(FRLayerController *)controller
+             nextIndex:(NSInteger)nextIndex
+    explicitSnapPointX:(CGFloat)explicitSnapPointX;
+@end
+
+@interface FRLayoutOperationResize : FRLayoutOperation
 @end
 
 @implementation FRLayoutOperation
@@ -35,21 +78,45 @@
 {
     return self->_priority;
 }
-@end
 
-@interface FRLayoutOperationSnappingPoint : FRLayoutOperation {
-    @private
-    CGFloat _snapPointX;
-    NSInteger _nextIndex;
-    FRLayerController *_controller;
+- (BOOL)isResize
+{
+    return [self.class isSubclassOfClass:FRLayoutOperationResize.class];
 }
-@property (nonatomic, strong) FRLayerController *controller;
-- (CGFloat)snapPointX;
-- (NSInteger)nextIndex;
-- (id)initWithPriority:(NSInteger)prio
-            controller:(FRLayerController *)controller
-            snapPointX:(CGFloat)snapPointX
-             nextIndex:(NSInteger)nextIndex;
+
+- (BOOL)isSnappingPoint
+{
+    return [self.class isSubclassOfClass:FRLayoutOperationSnappingPoint.class];
+}
+
+- (BOOL)isRightMargin
+{
+    return [self.class isSubclassOfClass:FRLayoutOperationRightMargin.class];
+}
+
+- (FRLayoutOperationSnappingPoint *)asSnappingPoint
+{
+    if (self.isSnappingPoint) {
+        return (FRLayoutOperationSnappingPoint *)self;
+    } else {
+        return nil;
+    }
+}
+
+- (FRLayoutOperationRightMargin *)asRightMargin
+{
+    if (self.isRightMargin) {
+        return (FRLayoutOperationRightMargin *)self;
+    } else {
+        return nil;
+    }
+}
+
+- (NSInteger)layerIndex
+{
+    return -1;
+}
+
 @end
 
 @implementation FRLayoutOperationSnappingPoint
@@ -79,24 +146,17 @@
     return self->_nextIndex;
 }
 
+- (NSInteger)layerIndex
+{
+    return self->_nextIndex - 1;
+}
+
 - (NSString *)description
 {
     return [NSString stringWithFormat:@"FRLayoutOperationSnappingPoint { priority=%d, "
             @"controller=%@, snapPointX=%f, nextIndex=%d }",
             self.priority, self.controller, self.snapPointX, self.nextIndex];
 }
-@end
-
-@interface FRLayoutOperationRightMargin : FRLayoutOperation {
-    @private
-    NSInteger _nextIndex;
-    FRLayerController *_controller;
-}
-@property (nonatomic, strong) FRLayerController *controller;
-- (NSInteger)nextIndex;
-- (id)initWithPriority:(NSInteger)prio
-            controller:(FRLayerController *)controller
-             nextIndex:(NSInteger)nextIndex;
 @end
 
 @implementation FRLayoutOperationRightMargin
@@ -106,17 +166,29 @@
 - (id)initWithPriority:(NSInteger)prio
             controller:(FRLayerController *)controller
              nextIndex:(NSInteger)nextIndex
+    explicitSnapPointX:(CGFloat)explicitSnapPointX
 {
     if ((self = [super initWithPriority:prio])) {
         self->_nextIndex = nextIndex;
+        self->_explicitSnapPointX = explicitSnapPointX;
         self.controller = controller;
     }
     return self;
 }
 
+- (CGFloat)explicitSnapPointX
+{
+    return self->_explicitSnapPointX;
+}
+
 - (NSInteger)nextIndex
 {
     return self->_nextIndex;
+}
+
+- (NSInteger)layerIndex
+{
+    return self->_nextIndex - 1;
 }
 
 - (NSString *)description
@@ -125,9 +197,6 @@
             @"controller=%@, nextIndex=%d }",
             self.priority, self.controller, self.nextIndex];
 }
-@end
-
-@interface FRLayoutOperationResize : FRLayoutOperation
 @end
 
 @implementation FRLayoutOperationResize
@@ -193,14 +262,29 @@
     if (self.viewControllers.count == 0) {
         item.currentViewPosition = FRPointSetX(item.currentViewPosition, 0);
         item.initialViewPosition = FRPointSetX(item.initialViewPosition, 0);
-        [self.viewControllers  addObject:ctrl];
+        [self.viewControllers addObject:ctrl];
         return self->_width;
     } else {
         CGFloat rightX = [self widthOfAllLayers];
         item.currentViewPosition = FRPointSetX(item.currentViewPosition, rightX);
         item.initialViewPosition = FRPointSetX(item.initialViewPosition, rightX);
-        [self.viewControllers  addObject:ctrl];
+        //FRLayerController *oldTop = [self topLayerViewController];
+        [self.viewControllers addObject:ctrl];
         [self doLayout];
+        // correct initialViewPosition
+        /*
+        FRLayeredNavigationItem *oldTopItem = oldTop.layeredNavigationItem;
+        CGFloat maxSnapX = -1;
+        for (FRLayerSnappingPoint *sp in oldTopItem.snappingPoints) {
+            maxSnapX = MAX(sp.x, maxSnapX);
+        }
+        if (maxSnapX >= 0) {
+            CGFloat absSnapX = oldTopItem.currentViewPosition.x + maxSnapX;
+            if (item.initialViewPosition.x > absSnapX) {
+                item.initialViewPosition = FRPointSetX(item.initialViewPosition, absSnapX);
+            }
+        }
+         */
         return MAX(self->_width, rightX);
     }
 }
@@ -250,7 +334,9 @@
         FRLayerController *ctrl = [self.viewControllers objectAtIndex:i];
         FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
         NSInteger nextIndex = i + 1;
+        CGFloat maxSnapPointX = -1;
         for (FRLayerSnappingPoint *snapPoint in item.snappingPoints) {
+            maxSnapPointX = MAX(maxSnapPointX, snapPoint.x);
             FRLayoutOperation *op = [[FRLayoutOperationSnappingPoint alloc] initWithPriority:snapPoint.priority
                                                                                   controller:ctrl
                                                                                   snapPointX:snapPoint.x
@@ -259,7 +345,8 @@
         }
         FRLayoutOperation *op = [[FRLayoutOperationRightMargin alloc] initWithPriority:item.rightMarginSnappingPriority
                                                                             controller:ctrl
-                                                                             nextIndex:nextIndex];
+                                                                             nextIndex:nextIndex
+                                                                    explicitSnapPointX:maxSnapPointX];
         [arr addObject:op];
         if (i == self.viewControllers.count - 1) {
             op = [[FRLayoutOperationResize alloc] initWithPriority:item.resizePriority];
@@ -267,16 +354,50 @@
         }
     }
     NSArray *sorted = [arr sortedArrayUsingComparator:^(FRLayoutOperation *op1, FRLayoutOperation *op2) {
-            NSInteger p1 = op1.priority;
-            NSInteger p2 = op2.priority;
-            if (p1 < p2) {
-                return (asc ? NSOrderedAscending : NSOrderedDescending);
-            } else if (p1 > p2) {
-                return (asc ? NSOrderedDescending : NSOrderedAscending);
-            } else {
-                return NSOrderedSame;
+        NSInteger p1 = op1.priority;
+        NSInteger p2 = op2.priority;
+        if (p1 == p2) {
+            // resizing has the highest priority
+            if (op1.isResize) {
+                p1++;
             }
-        }];
+            if (op2.isResize) {
+                p2++;
+            }
+            if (!op1.isResize && !op2.isResize) {
+                // lower layers have higher priorities
+                if (op1.layerIndex < op2.layerIndex) {
+                    p1++;
+                } else if (op2.layerIndex < op1.layerIndex) {
+                    p2++;
+                } else { // equal layers
+                    // snapping points to the right have higher priorities
+                    if (op1.isRightMargin) {
+                        p1++;
+                    }
+                    if (op2.isRightMargin) {
+                        p2++;
+                    }
+                    if (!op1.isRightMargin && !op2.isRightMargin) {
+                        FRLayoutOperationSnappingPoint *sp1 = [op1 asSnappingPoint];
+                        FRLayoutOperationSnappingPoint *sp2 = [op2 asSnappingPoint];
+                        if (sp1.snapPointX < sp2.snapPointX) {
+                            p2++;
+                        } else if (sp2.snapPointX < sp1.snapPointX) {
+                            p1++;
+                        }
+                    }
+                }
+            }
+        }
+        if (p1 < p2) {
+            return (asc ? NSOrderedAscending : NSOrderedDescending);
+        } else if (p1 > p2) {
+            return (asc ? NSOrderedDescending : NSOrderedAscending);
+        } else {
+            return NSOrderedSame;
+        }
+    }];
     for (FRLayoutOperation *op in sorted) {
         BOOL stop = NO;
         block(op, &stop);
@@ -334,55 +455,53 @@
 // Returns the space made available. The result is never larger than the availableSpace parameter.
 // Returns -1 if no further enlargements possible
 - (CGFloat)enlargeByMovingToSnappingPoint:(CGFloat)snapPointX
+                      initialViewPosition:(CGFloat)initialViewPosition
                                controller:(FRLayerController *)ctrl
                                 nextIndex:(NSInteger)nextIndex
                            availableSpace:(CGFloat)availableSpace
-                   setInitialViewPosition:(BOOL)setInitialViewPosition
 {
     FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
     CGFloat snapPointAbsX = item.currentViewPosition.x + snapPointX;
+    CGFloat absInitialViewPosition = item.currentViewPosition.x + initialViewPosition;
     CGFloat spaceGained = 0;
     NSArray *vcs = self.viewControllers;
     if (nextIndex < vcs.count) {
         FRLayerController *next = [vcs objectAtIndex:nextIndex];
         FRLayeredNavigationItem *nextItem = next.layeredNavigationItem;
-        if (nextItem.initialViewPosition.x < snapPointAbsX) {
-            CGFloat transX = snapPointAbsX - nextItem.currentViewPosition.x;
-            if (transX > 0) {
-                if (transX > availableSpace) {
-                    return -1;
-                } else {
-                    spaceGained = transX;
-                    // move layers to the right
-                    for (NSInteger i = nextIndex; i < vcs.count; i++) {
-                        FRLayerController *lc = [vcs objectAtIndex:i];
-                        FRLayeredNavigationItem *lcItem = lc.layeredNavigationItem;
-                        lcItem.currentViewPosition = FRPointTransX(lcItem.currentViewPosition, transX);
-                        if (lc != next) { // dealt with later
-                            lcItem.initialViewPosition = FRPointTransX(lcItem.initialViewPosition, transX);
-                        }
+        //if (nextItem.initialViewPosition.x < snapPointAbsX) {
+        CGFloat transX = snapPointAbsX - nextItem.currentViewPosition.x;
+        if (transX > 0) {
+            if (transX > availableSpace) {
+                return -1;
+            } else {
+                spaceGained = transX;
+                // move layers to the right
+                for (NSInteger i = nextIndex; i < vcs.count; i++) {
+                    FRLayerController *lc = [vcs objectAtIndex:i];
+                    FRLayeredNavigationItem *lcItem = lc.layeredNavigationItem;
+                    lcItem.currentViewPosition = FRPointTransX(lcItem.currentViewPosition, transX);
+                    if (lc != next) { // dealt with later
+                        lcItem.initialViewPosition = FRPointTransX(lcItem.initialViewPosition, transX);
                     }
                 }
             }
-            if (setInitialViewPosition) {
-                // move nextItem.initialViewPosition to the right
-                nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, snapPointAbsX);
+            // initialViewPosition < 0 if there is no explicit snapping point
+            if (nextItem.initialViewPosition.x < absInitialViewPosition) {
+                nextItem.initialViewPosition = FRPointSetX(nextItem.initialViewPosition, absInitialViewPosition);
             }
         }
     }
     return spaceGained;
 }
 
-- (CGFloat)enlargeByMovingToRightMarginOf:(FRLayerController *)ctrl
-                                nextIndex:(NSInteger)nextIndex
-                           availableSpace:(CGFloat)availableSpace
+- (CGFloat)enlargeByMovingToRightMargin:(FRLayoutOperationRightMargin *)op
+                         availableSpace:(CGFloat)availableSpace
 {
-    FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
-    return [self enlargeByMovingToSnappingPoint:item.currentWidth
-                                     controller:ctrl
-                                      nextIndex:nextIndex
-                                 availableSpace:availableSpace
-                         setInitialViewPosition:NO];
+    return [self enlargeByMovingToSnappingPoint:op.controller.layeredNavigationItem.currentWidth
+                            initialViewPosition:op.explicitSnapPointX
+                                     controller:op.controller
+                                      nextIndex:op.nextIndex
+                                 availableSpace:availableSpace];
 }
 
 - (void)enlargeBy:(CGFloat)space {
@@ -395,15 +514,14 @@
          if ([op.class isSubclassOfClass:FRLayoutOperationSnappingPoint.class]) {
              FRLayoutOperationSnappingPoint *snapOp = (FRLayoutOperationSnappingPoint *)op;
              spaceGained = [self enlargeByMovingToSnappingPoint:snapOp.snapPointX
+                                            initialViewPosition:snapOp.snapPointX
                                                      controller:snapOp.controller
                                                       nextIndex:snapOp.nextIndex
-                                                 availableSpace:spaceStillAvailable
-                                         setInitialViewPosition:YES];
+                                                 availableSpace:spaceStillAvailable];
          } else if ([op.class isSubclassOfClass:FRLayoutOperationRightMargin.class]) {
              FRLayoutOperationRightMargin *rightMargin = (FRLayoutOperationRightMargin *)op;
-             spaceGained = [self enlargeByMovingToRightMarginOf:rightMargin.controller
-                                                      nextIndex:rightMargin.nextIndex
-                                                 availableSpace:spaceStillAvailable];
+             spaceGained = [self enlargeByMovingToRightMargin:rightMargin
+                                               availableSpace:spaceStillAvailable];
          } else {
              spaceGained = [self enlargeByResizing:spaceStillAvailable];
          }

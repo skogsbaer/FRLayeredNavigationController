@@ -218,5 +218,97 @@ right snap prio               7                                     8
     AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4);
 }
 
+#define PRIO 10
 
+- (void)testLayerModelChangesEqualPriorities
+{
+    self.model = [[FRLayerModel alloc] init];
+    self.layer1 = [self newLayer:@"layer1" maxWidth:NO config:^(FRLayeredNavigationItem *navItem) {
+        navItem.width = WIDTH_1;
+        [navItem addSnappingPointX:SNAP_A priority:PRIO];
+        [navItem addSnappingPointX:SNAP_B priority:PRIO];
+        navItem.rightMarginSnappingPriority = PRIO;
+        navItem.resizePriority = PRIO;
+    }];
+    self.layer2 = [self newLayer:@"layer2" maxWidth:NO config:^(FRLayeredNavigationItem *navItem) {
+        navItem.width = WIDTH_2;
+        navItem.rightMarginSnappingPriority = PRIO;
+        navItem.resizePriority = PRIO;
+    }];
+    self.layer3 = [self newLayer:@"layer3" maxWidth:YES config:^(FRLayeredNavigationItem *navItem) {
+        navItem.width = WIDTH_3;
+        [navItem addSnappingPointX:SNAP_C priority:PRIO];
+        [navItem addSnappingPointX:SNAP_D priority:PRIO];
+        navItem.rightMarginSnappingPriority = PRIO;
+        navItem.resizePriority = PRIO;
+    }];
+    self.layer4 = [self newLayer:@"layer4" maxWidth:YES config:^(FRLayeredNavigationItem *navItem) {
+        navItem.width = WIDTH_4;
+        navItem.rightMarginSnappingPriority = PRIO;
+        navItem.resizePriority = PRIO;
+    }];
+
+    [self.model setWidth:220];
+    [self.model pushLayerController:self.layer1];
+    [self.model pushLayerController:self.layer2];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+
+    [self.model setWidth:210];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+
+    [self.model setWidth:200];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+
+    [self.model setWidth:420];
+    [self.model pushLayerController:self.layer3];
+    [self.model pushLayerController:self.layer4];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, WIDTH_3 + WIDTH_4);
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3, WIDTH_4);
+
+    [self.model setWidth:440];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, WIDTH_3 + 20 + WIDTH_4);
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3, WIDTH_4 + 20);
+
+    [self.model setWidth:420];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, WIDTH_3 + WIDTH_4);
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3, WIDTH_4);
+
+    [self.model setWidth:400];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3 + 70 + WIDTH_4);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + WIDTH_3, WIDTH_4 + 70);
+
+    [self.model setWidth:330];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3 + WIDTH_4);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + WIDTH_3, WIDTH_4);
+
+    [self.model setWidth:320];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3 + WIDTH_4 + 10);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + SNAP_D, WIDTH_4 + 10);
+
+}
+
+- (void)testLayerModelChangesExplicitMovements
+{
+
+}
+
+- (void)testWhereTopLayerIsShorterThenSecondLayer
+{
+
+}
 @end

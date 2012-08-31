@@ -268,11 +268,10 @@
         CGFloat rightX = [self widthOfAllLayers];
         item.currentViewPosition = FRPointSetX(item.currentViewPosition, rightX);
         item.initialViewPosition = FRPointSetX(item.initialViewPosition, rightX);
-        //FRLayerController *oldTop = [self topLayerViewController];
+        FRLayerController *oldTop = [self topLayerViewController];
         [self.viewControllers addObject:ctrl];
         [self doLayout];
         // correct initialViewPosition
-        /*
         FRLayeredNavigationItem *oldTopItem = oldTop.layeredNavigationItem;
         CGFloat maxSnapX = -1;
         for (FRLayerSnappingPoint *sp in oldTopItem.snappingPoints) {
@@ -284,7 +283,6 @@
                 item.initialViewPosition = FRPointSetX(item.initialViewPosition, absSnapX);
             }
         }
-         */
         return MAX(self->_width, rightX);
     }
 }

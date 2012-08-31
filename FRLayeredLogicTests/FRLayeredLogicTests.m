@@ -263,7 +263,14 @@ right snap prio               7                                     8
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
 
     [self.model setWidth:420];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+
     [self.model pushLayerController:self.layer3];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, WIDTH_3 + WIDTH_4);
+
     [self.model pushLayerController:self.layer4];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);

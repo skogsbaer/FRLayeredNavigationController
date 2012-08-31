@@ -80,8 +80,8 @@ typedef enum {
         _userInteractionEnabled = YES;
         _dropLayersWhenPulledRight = NO;
 
-        NSArray *ops = [self.model pushLayerController:layeredRC];
-        [self applyOperations:ops height:1024 correctLeftOverlap:YES];
+        self.model = [[FRLayerModel alloc] init];
+        [self.model pushLayerController:layeredRC];
         [self addChildViewController:layeredRC];
         [layeredRC didMoveToParentViewController:self];
     }
@@ -312,7 +312,7 @@ typedef enum {
         const CGFloat initDiff = myInitPos.x - last.layeredNavigationItem.initialViewPosition.x;
         const CGFloat maxDiff = CGRectGetWidth(last.view.frame);
 
-        if (xTranslation == 0 && (CGFloatNotEqual(curDiff, initDiff) && CGFloatNotEqual(curDiff, maxDiff))) {
+        if (xTranslation == 0 && (FRFloatNotEqual(curDiff, initDiff) && FRFloatNotEqual(curDiff, maxDiff))) {
             switch (method) {
                 case SnappingPointsMethodNearest: {
                     if ((curDiff - initDiff) > (maxDiff - curDiff)) {
@@ -446,8 +446,8 @@ typedef enum {
 {
     CGFloat width = CGRectGetWidth(self.view.bounds);
     CGFloat height = CGRectGetHeight(self.view.bounds);
-    NSArray *ops = [self.model setWidth:width];
-    [self applyOperations:ops height:height correctLeftOverlap:YES];
+    [self.model setWidth:width];
+    [self doRender:height];
 }
 
 - (CGRect)getScreenBoundsForCurrentOrientation
@@ -539,18 +539,14 @@ typedef enum {
     }
 }
 
-- (void)applyOperations:(NSArray *)operations
-                 height:(CGFloat)height
-     correctLeftOverlap:(BOOL)correctLeftOverlap
+- (void)doRender:(CGFloat)height
 {
-    // FIXME!!!!!!!!!!!!!!!
-    for (FRLayerControllerOperation *op in operations) {
-        FRLayerController *vc = op.layerController;
+    for (FRLayerController *vc in self.model.layeredViewControllers) {
         CGRect f = vc.view.frame;
         FRLayeredNavigationItem *item = vc.layeredNavigationItem;
         CGPoint p = item.currentViewPosition;
-        f.origin = CGPointMake(p.x + op.xTranslation, p.y);
-        f.size = CGSizeMake(item.currentWidth + op.widthChange, height);
+        f.origin = CGPointMake(p.x, p.y);
+        f.size = CGSizeMake(item.currentWidth, height);
         vc.view.frame = f;
     }
 }
@@ -564,8 +560,7 @@ typedef enum {
         return;
     }
 
-    UIViewController *vc;
-    NSArray *ops = [self.model popLayerController:&vc];
+    UIViewController *vc = [self.model popLayerController];
 
     CGRect goAwayFrame = CGRectMake(CGRectGetMinX(vc.view.frame),
                                     1024,
@@ -580,7 +575,7 @@ typedef enum {
         [vc removeFromParentViewController];
 
         CGFloat height = CGRectGetHeight(self.view.bounds);
-        [self applyOperations:ops height:height correctLeftOverlap:YES];
+        [self doRender:height];
     };
 
     if (animated) {
@@ -645,8 +640,7 @@ typedef enum {
     }
 
     const FRLayeredNavigationItem *navItem = newVC.layeredNavigationItem;
-    const FRLayeredNavigationItem *parentNavItem = parentLayerController.layeredNavigationItem;
-
+    
     if (contentViewController.parentViewController.parentViewController == self) {
         /* no animation if the new content view controller is already a child of self */
         [self popToViewController:anchorViewController animated:NO];
@@ -654,14 +648,6 @@ typedef enum {
         [self popToViewController:anchorViewController animated:animated];
     }
 
-    CGFloat anchorInitX = parentNavItem.initialViewPosition.x;
-    CGFloat anchorCurrentX = parentNavItem.currentViewPosition.x;
-    CGFloat anchorWidth = parentNavItem.width;
-    CGFloat initX = anchorInitX + (parentNavItem.nextItemDistance >= 0 ?
-                                   parentNavItem.nextItemDistance :
-                                   FRLayeredNavigationControllerStandardDistance);
-    navItem.initialViewPosition = CGPointMake(initX, 0);
-    navItem.currentViewPosition = CGPointMake(anchorCurrentX + anchorWidth, 0);
     navItem.titleView = nil;
     navItem.title = nil;
     navItem.hasChrome = YES;
@@ -669,14 +655,16 @@ typedef enum {
 
     configuration(newVC.layeredNavigationItem);
 
-    FRLayerControllersOperations *ops = [self.model pushLayerController:newVC];
-
+    CGFloat srcX = [self.model pushLayerController:newVC];
+    CGFloat height = CGRectGetHeight(self.view.bounds);
+    CGRect offscreenFrame = CGRectMake(srcX, 0, navItem.currentWidth, height);
+    newVC.view.frame = offscreenFrame;
+    
     [self addChildViewController:newVC];
     [self.view addSubview:newVC.view];
 
     void (^doNewFrameMove)() = ^() {
-        CGFloat height = CGRectGetHeight(self.view.bounds);
-        [self applyOperations:ops height:height correctLeftOverlap:YES];
+        [self doRender:height];
     };
     void (^newFrameMoveCompleted)(BOOL) = ^(BOOL finished) {
         [newVC didMoveToParentViewController:self];

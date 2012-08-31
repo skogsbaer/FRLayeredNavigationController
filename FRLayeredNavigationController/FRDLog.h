@@ -28,9 +28,9 @@
 
 /* http://kuoi.com/~kamikaze/read.php?id=158 */
 #ifdef DEBUG
-#define FRDLOG(fmt, ...) NSLog(@"%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+#define FRDLOG(fmt, ...) NSLog(@"%s:%d: " fmt, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
 #else
 #define FRDLOG(...)
 #endif
 
-#define FRWLOG(fmt, ...) NSLog(@"%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+#define FRWLOG(fmt, ...) NSLog(@"%s:%d: " fmt, __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)

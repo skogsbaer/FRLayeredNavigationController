@@ -82,10 +82,10 @@
 }
 
 - (NSString *)description {
-    return [NSString stringWithFormat:@"FRLayeredNavigationItem { initialViewPosition=%@, currentViewPosition=%@, "
-            @"width=%f, currentWidth=%f, nextItemDistance=%f, title=%@, hasChrome=%d, displayShadow=%d, "
-            @"snappingPoints=%@",
-            NSStringFromCGPoint(self.initialViewPosition), NSStringFromCGPoint(self.currentViewPosition),
+    return [NSString stringWithFormat:@"FRLayeredNavigationItem { name=%@, initialViewPosition=%@, "
+            @"currentViewPosition=%@, width=%f, currentWidth=%f, nextItemDistance=%f, title=%@, hasChrome=%d, "
+            @"displayShadow=%d, snappingPoints=%@",
+            self.name, NSStringFromCGPoint(self.initialViewPosition), NSStringFromCGPoint(self.currentViewPosition),
             self.width, self.currentWidth, self.nextItemDistance, self.title,
             self.hasChrome, self.displayShadow, self.internalSnappingPoints];
 }
@@ -141,5 +141,5 @@
 @synthesize displayShadow = _displayShadow;
 @synthesize layerController = _layerController;
 @synthesize internalSnappingPoints = _internalSnappingPoints;
-
+@synthesize name = _name;
 @end

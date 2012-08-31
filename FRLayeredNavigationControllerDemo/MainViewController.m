@@ -8,7 +8,6 @@
 
 #import "MainViewController.h"
 #import "SampleListViewController.h"
-#import "FRLayeredNavigationController.h"
 #import "FRLayeredNavigationItem.h"
 
 @interface MainViewController ()
@@ -35,15 +34,8 @@
     }];
 }
 
-- (id)init {
+- (id)initWithLayeredNavigationController:(FRLayeredNavigationController *)fvc {
     if ((self = [super init])) {
-        UIViewController *vc = [[SampleListViewController alloc] init];
-        FRLayeredNavigationController *fvc = [[FRLayeredNavigationController alloc]
-                                              initWithRootViewController:vc
-                                                           configuration:^(FRLayeredNavigationItem *item) {
-                                                               item.width = 200; //600;
-                                                               item.nextItemDistance = 64; //2;
-                                                           }];
         self.rootViewController = fvc;
     }
     return self;

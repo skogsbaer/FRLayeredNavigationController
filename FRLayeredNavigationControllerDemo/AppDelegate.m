@@ -29,6 +29,12 @@
 #import "AppDelegate.h"
 
 #import "MainViewController.h"
+#import "SampleListViewController.h"
+#import "FRLayeredNavigationController.h"
+#import "FRLayeredNavigationItem.h"
+#import "SnappingPointDemoViewController.h"
+
+#define STANDARD_DEMO NO
 
 @implementation AppDelegate
 
@@ -39,7 +45,23 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
-    MainViewController *vc = [[MainViewController alloc] init];
+
+    FRLayeredNavigationController *fvc;
+    if (STANDARD_DEMO) {
+        UIViewController *lvc = [[SampleListViewController alloc] init];
+        fvc = [[FRLayeredNavigationController alloc]
+               initWithRootViewController:lvc
+               configuration:^(FRLayeredNavigationItem *item) {
+                   item.width = 200; //600;
+                   item.nextItemDistance = 64; //2;
+               }];
+    } else {
+        SnappingPointDemoViewController *lvc = [[SnappingPointDemoViewController alloc] initWithIndex:0];
+        fvc = [[FRLayeredNavigationController alloc]
+               initWithRootViewController:lvc
+               configuration:[lvc configuration]];
+    }
+    UIViewController *vc = [[MainViewController alloc] initWithLayeredNavigationController:fvc];
     self.window.rootViewController = vc;
     [self.window makeKeyAndVisible];
 

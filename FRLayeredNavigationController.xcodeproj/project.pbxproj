@@ -21,6 +21,7 @@
 		5231DF7E15ED098D00A22651 /* FRLayerChromeView.m in Sources */ = {isa = PBXBuildFile; fileRef = DA4FACEB15591B6700D85A7E /* FRLayerChromeView.m */; };
 		5231DF7F15ED099A00A22651 /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DAAB20AF155D27A700C5CAA5 /* Utils.m */; };
 		5231DF8015ED09A000A22651 /* FRNavigationBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 687661CB15D997BE009DF4A4 /* FRNavigationBar.m */; };
+		52ABAD8115F0D230001BC8C8 /* SnappingPointDemoViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 52ABAD8015F0D230001BC8C8 /* SnappingPointDemoViewController.m */; };
 		52ED6E2615DCC1E900A8FC39 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 52ED6E2515DCC1E900A8FC39 /* MainViewController.m */; };
 		687661CC15D997BE009DF4A4 /* FRNavigationBar.h in Headers */ = {isa = PBXBuildFile; fileRef = 687661CA15D997BE009DF4A4 /* FRNavigationBar.h */; };
 		687661CD15D997BE009DF4A4 /* FRNavigationBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 687661CB15D997BE009DF4A4 /* FRNavigationBar.m */; };
@@ -77,6 +78,8 @@
 		5231DF7415ECB45500A22651 /* FRLayeredLogicTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FRLayeredLogicTests.m; sourceTree = "<group>"; };
 		5231DF7615ECB45500A22651 /* FRLayeredLogicTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FRLayeredLogicTests-Prefix.pch"; sourceTree = "<group>"; };
 		5231DFA715EE1D4B00A22651 /* FRLayeredNavigationControllerConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FRLayeredNavigationControllerConstants.h; sourceTree = "<group>"; };
+		52ABAD7F15F0D230001BC8C8 /* SnappingPointDemoViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SnappingPointDemoViewController.h; sourceTree = "<group>"; };
+		52ABAD8015F0D230001BC8C8 /* SnappingPointDemoViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SnappingPointDemoViewController.m; sourceTree = "<group>"; };
 		52ED6E2415DCC1E900A8FC39 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		52ED6E2515DCC1E900A8FC39 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		687661CA15D997BE009DF4A4 /* FRNavigationBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FRNavigationBar.h; sourceTree = "<group>"; };
@@ -268,6 +271,8 @@
 				DA4FAD1F15591C4100D85A7E /* SampleListViewController.m */,
 				52ED6E2415DCC1E900A8FC39 /* MainViewController.h */,
 				52ED6E2515DCC1E900A8FC39 /* MainViewController.m */,
+				52ABAD7F15F0D230001BC8C8 /* SnappingPointDemoViewController.h */,
+				52ABAD8015F0D230001BC8C8 /* SnappingPointDemoViewController.m */,
 				DA4FAD0A15591BD500D85A7E /* Supporting Files */,
 			);
 			path = FRLayeredNavigationControllerDemo;
@@ -474,6 +479,7 @@
 				DA4FAD2415591C4100D85A7E /* SampleContentViewController.m in Sources */,
 				DA4FAD2515591C4100D85A7E /* SampleListViewController.m in Sources */,
 				52ED6E2615DCC1E900A8FC39 /* MainViewController.m in Sources */,
+				52ABAD8115F0D230001BC8C8 /* SnappingPointDemoViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

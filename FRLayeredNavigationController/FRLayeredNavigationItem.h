@@ -67,6 +67,7 @@
     BOOL _displayShadow;
     NSMutableSet *_internalSnappingPoints;
     FRLayerController __weak * _layerController;
+    NSString *_name;
 }
 
 /**
@@ -131,5 +132,7 @@
 @property (nonatomic, readwrite) NSInteger rightMarginSnappingPriority;
 - (void)addSnappingPointX:(CGFloat)x priority:(NSInteger)priority;
 - (NSSet *)snappingPoints;
+
+@property (nonatomic, strong) NSString *name;
 
 @end

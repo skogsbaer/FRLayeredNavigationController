@@ -62,11 +62,11 @@
 
         here = here.parentViewController;
     }
-
+    /*
     FRDLOG(@"WARNING: No instance of FRLayerController in view controller hierachy!");
     FRDLOG(@"DEBUG: self: '%@', self.parentViewController: '%@'", self, self.parentViewController);
     FRDLOG(@"HINT: The layeredNavigationItem property is nil until the view controller is shown on the screen.");
-
+     */
     return nil;
 }
 

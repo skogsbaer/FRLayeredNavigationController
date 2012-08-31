@@ -310,7 +310,19 @@ right snap prio               7                                     8
 
 - (void)testLayerModelChangesExplicitMovements
 {
+    [self.model setWidth:310];
+    [self.model pushLayerController:self.layer1];
+    [self.model pushLayerController:self.layer2];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
 
+    FRLayeredNavigationItem *item2 = self.layer2.layeredNavigationItem;
+    item2.currentViewPosition = FRPointSetX(item2.currentViewPosition, 90);
+
+    [self.model pushLayerController:self.layer3];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, 90, WIDTH_2);
+    AssertLayer(self.layer3, 90 + WIDTH_2, 90 + WIDTH_2, 100);
 }
 
 - (void)testWhereTopLayerIsShorterThenSecondLayer

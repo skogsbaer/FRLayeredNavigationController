@@ -391,10 +391,10 @@ typedef enum {
                 newX = parentPos.x - myWidth;
             }
 
+            // SW: why needed?
             if (parentPos.x - myNewPos.x <= minDiff) {
                 /* at least minDiff difference between parent and me */
                 newX = parentPos.x - minDiff;
-
             }
 
             xTranslation = newX - myPos.x;

@@ -306,7 +306,6 @@ right snap prio               7                                     8
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, 190);
     AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + SNAP_D, WIDTH_4 + 10);
-
 }
 
 - (void)testLayerModelChangesExplicitMovements
@@ -316,6 +315,14 @@ right snap prio               7                                     8
 
 - (void)testWhereTopLayerIsShorterThenSecondLayer
 {
-
+    self.layer2.layeredNavigationItem.width = 50;
+    self.layer3.layeredNavigationItem.width = 50;
+    [self.model setWidth:120];
+    [self.model pushLayerController:self.layer1];
+    [self.model pushLayerController:self.layer2];
+    [self.model pushLayerController:self.layer3];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, 50);
+    AssertLayer(self.layer3, SNAP_A + 50, SNAP_A + 50, 60);
 }
 @end

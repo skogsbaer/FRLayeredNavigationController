@@ -14,6 +14,26 @@
 
 #pragma mark Helper classes
 
+@interface FRLayerMoveContext ()
+- (id)initWithIndex:(NSInteger)i;
+- (NSInteger)index;
+@end
+
+@implementation FRLayerMoveContext
+
+- (id)initWithIndex:(NSInteger)i {
+    if ((self = [super init])) {
+        self->_index = i;
+    }
+    return self;
+}
+
+- (NSInteger)index
+{
+    return self->_index;
+}
+@end
+
 @class FRLayoutOperationSnappingPoint;
 @class FRLayoutOperationRightMargin;
 
@@ -641,5 +661,125 @@
     }
     [self fillSpace];
 }
+
+#pragma mark Moving
+
+- (void)moveLayer:(NSInteger)index adjustInitialViewPosition:(BOOL)adjustInitPos xTrans:(CGFloat)xTrans
+{
+    FRLayerController *ctrl = [self.viewControllers objectAtIndex:index];
+    FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+    if (item.resizeOnMove && ctrl.maximumWidth) {
+        CGFloat rightX = item.currentViewPosition.x + item.currentWidth;
+        CGFloat widthDiff;
+        if (rightX > self->_width) {
+            widthDiff = MIN(rightX - self->_width, item.currentWidth - item.width);
+        } else {
+            widthDiff = MIN(xTrans, item.currentWidth - item.width);
+        }
+        item.currentWidth = item.currentWidth - widthDiff;
+    }
+    item.currentViewPosition = FRPointTransX(item.currentViewPosition, xTrans);
+    if (adjustInitPos) {
+        item.initialViewPosition = FRPointTransX(item.initialViewPosition, xTrans);
+    }
+}
+// 0 <= index < self.viewControllers.count
+- (void)moveRightBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
+{
+    NSArray *vcs = self.viewControllers;
+    CGFloat realXTrans;
+    if (index == 0) {
+        realXTrans = xTrans / 2;
+    } else {
+        FRLayerController *below = [vcs objectAtIndex:(index - 1)];
+        FRLayeredNavigationItem *itemBelow = below.layeredNavigationItem;
+        CGFloat rightBound = itemBelow.currentViewPosition.x + itemBelow.currentWidth;
+        FRLayerController *ctrl = [vcs objectAtIndex:index];
+        CGFloat curX = ctrl.layeredNavigationItem.currentViewPosition.x;
+        CGFloat fullSpeedX = MIN(xTrans, MAX(0, rightBound - curX));
+        CGFloat halfSpeedX = MAX(0, xTrans - fullSpeedX) / 2;
+        realXTrans = fullSpeedX + halfSpeedX;
+    }
+    for (NSInteger i = index; i < vcs.count; i++) {
+        [self moveLayer:i adjustInitialViewPosition:(i > index) xTrans:realXTrans];
+    }
+}
+
+// 0 <= index < self.viewControllers.count
+- (void)moveLeftBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
+{
+    CGFloat remXTrans = xTrans;
+    for (NSInteger i = index; i >= 0; i--) {
+        FRLayerController *ctrl = [self.viewControllers objectAtIndex:i];
+        FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+        CGFloat transPossible = MAX(0, item.currentViewPosition.x - item.initialViewPosition.x);
+        CGFloat transHere = MIN(xTrans, transPossible);
+        remXTrans = remXTrans - transHere;
+        if (i == 0 && remXTrans > 0) {
+            // do an out-of-bounds transition, half moving speed
+            transHere += remXTrans / 2;
+        }
+        for (NSInteger j = i; j < self.viewControllers.count; j++) {
+            [self moveLayer:j adjustInitialViewPosition:YES xTrans:-transHere];
+        }
+    }
+}
+
+- (FRLayerMoveContext *)moveBy:(CGFloat)xTrans touched:(FRLayerController *)ctrl {
+    NSInteger index = [self.viewControllers indexOfObject:ctrl];
+    if (index == NSNotFound) {
+        return nil;
+    } else if (xTrans < 0) {
+        [self moveLeftBy:-xTrans touchedIndex:index];
+    } else if (xTrans > 0) {
+        [self moveRightBy:xTrans touchedIndex:index];
+    }
+    return [[FRLayerMoveContext alloc] initWithIndex:index];
+}
+
+- (void)endMove:(FRLayerMoveContext *)ctx method:(FRSnappingPointsMethod)method {
+    NSInteger index = ctx.index;
+    NSArray *vcs = self.viewControllers;
+    if (index < 0 || index >= vcs.count || ctx == nil) {
+        return; // just a safety net
+    }
+    FRLayerController *ctrl = [vcs objectAtIndex:index];
+    FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+    CGFloat curX = item.currentViewPosition.x;
+    CGFloat leftX = item.initialViewPosition.x;
+    CGFloat rightX;
+    if (index == 0) {
+        rightX = 0;
+    } else {
+        FRLayerController *below = [vcs objectAtIndex:(index - 1)];
+        FRLayeredNavigationItem *itemBelow = below.layeredNavigationItem;
+        rightX = itemBelow.currentViewPosition.x + itemBelow.currentWidth;
+    }
+    CGFloat targetX;
+    switch (method) {
+        case FRSnappingPointsMethodCompact:
+            targetX = leftX;
+            break;
+        case FRSnappingPointsMethodExpand:
+            targetX = rightX;
+            break;
+        case FRSnappingPointsMethodNearest:
+            if (curX <= leftX) {
+                targetX = leftX;
+            } else if (curX >= rightX) {
+                targetX = rightX;
+            } else if ((curX - leftX) < (rightX - curX)) {
+                targetX = leftX;
+            } else {
+                targetX = rightX;
+            }
+            break;
+    }
+    CGFloat xTrans = targetX - curX;
+    for (NSInteger i = index; i < vcs.count; i++) {
+        [self moveLayer:i adjustInitialViewPosition:(i > index) xTrans:xTrans];
+    }
+}
+
 @end
 

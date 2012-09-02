@@ -65,6 +65,7 @@
     CGFloat _nextItemDistance;
     BOOL _hasChrome;
     BOOL _displayShadow;
+    BOOL _resizeOnMove;
     NSMutableSet *_internalSnappingPoints;
     FRLayerController __weak * _layerController;
     NSString *_name;
@@ -133,6 +134,7 @@
 - (void)addSnappingPointX:(CGFloat)x priority:(NSInteger)priority;
 - (NSSet *)snappingPoints;
 
-@property (nonatomic, strong) NSString *name;
+@property (nonatomic, strong, readwrite) NSString *name;
+@property (nonatomic, assign, readwrite) BOOL resizeOnMove;
 
 @end

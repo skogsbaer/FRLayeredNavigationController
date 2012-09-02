@@ -75,6 +75,7 @@
         self->_rightMarginSnappingPriority = FRLayeredNavigationControllerRightMarginSnappingDefaultPriority;
         self->_hasChrome = YES;
         self->_displayShadow = YES;
+        self->_resizeOnMove = NO;
         self.internalSnappingPoints = [NSMutableSet set];
     }
 
@@ -139,6 +140,7 @@
 @synthesize nextItemDistance = _nextItemDistance;
 @synthesize hasChrome = _hasChrome;
 @synthesize displayShadow = _displayShadow;
+@synthesize resizeOnMove = _resizeOnMove;
 @synthesize layerController = _layerController;
 @synthesize internalSnappingPoints = _internalSnappingPoints;
 @synthesize name = _name;

@@ -37,12 +37,6 @@
 
 #import <QuartzCore/QuartzCore.h>
 
-typedef enum {
-    SnappingPointsMethodNearest,
-    SnappingPointsMethodCompact,
-    SnappingPointsMethodExpand
-} SnappingPointsMethod;
-
 @interface FRLayeredNavigationController ()
 
 @property (nonatomic, readwrite, strong) UIPanGestureRecognizer *panGR;

@@ -12,9 +12,18 @@
 
 typedef NSArray FRLayerControllersOperations;
 
-// Responsibilities:
-// - Updates initialViewPosition, currentViewPosition and currentWidth
-// - Does *not* model the fade-in/fade-out animations when pushing/popping a layer
+typedef enum {
+    FRSnappingPointsMethodNearest,
+    FRSnappingPointsMethodCompact,
+    FRSnappingPointsMethodExpand
+} FRSnappingPointsMethod;
+
+@interface FRLayerMoveContext : NSObject {
+    @private
+    NSInteger _index;
+}
+@end
+
 @interface FRLayerModel : NSObject {
     @private
     NSMutableArray *_viewControllers;
@@ -27,6 +36,8 @@ typedef NSArray FRLayerControllersOperations;
 - (CGFloat)pushLayerController:(FRLayerController *)ctrl;
 - (FRLayerController *)popLayerController;
 - (void)setWidth:(CGFloat)width;
+- (FRLayerMoveContext *)moveBy:(CGFloat)xTrans touched:(FRLayerController *)ctrl;
+- (void)endMove:(FRLayerMoveContext *)ctx method:(FRSnappingPointsMethod)method;
 - (BOOL)areViewControllersMaximallyCompressed;
 
 @end

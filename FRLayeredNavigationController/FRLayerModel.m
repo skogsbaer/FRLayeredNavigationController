@@ -720,7 +720,7 @@
             transHere += remXTrans / 2;
         }
         for (NSInteger j = i; j < self.viewControllers.count; j++) {
-            [self moveLayer:j adjustInitialViewPosition:YES xTrans:-transHere];
+            [self moveLayer:j adjustInitialViewPosition:(j > i) xTrans:-transHere];
         }
     }
 }

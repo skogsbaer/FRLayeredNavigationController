@@ -382,24 +382,23 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 6, WIDTH_1 + WIDTH_2 - 6, WIDTH_3 + WIDTH_4 + 6);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 6, WIDTH_1 + WIDTH_2 + WIDTH_3 - 6, WIDTH_4 + 6);
 
-    // OK until here!
     [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
-    AssertLayer(self.layer3, WIDTH_1 + SNAP_B, WIDTH_1 + SNAP_B, WIDTH_3 + WIDTH_4 + 10);
-    AssertLayer(self.layer4, WIDTH_1 + SNAP_B + SNAP_D, WIDTH_1 + SNAP_B + WIDTH_3, WIDTH_4 + 10);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, WIDTH_3 + WIDTH_4 + 10);
+    AssertLayer(self.layer4, SNAP_B + WIDTH_2 + SNAP_D, SNAP_B + WIDTH_2 + WIDTH_3, WIDTH_4 + 10);
 
-    [self.model moveBy:3 touched:self.layer2];
+    ctx = [self.model moveBy:3 touched:self.layer2];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B + 3, WIDTH_2);
-    AssertLayer(self.layer3, WIDTH_1 + SNAP_B + 3, WIDTH_1 + SNAP_B + 3, WIDTH_3 + WIDTH_4 + 7);
-    AssertLayer(self.layer4, WIDTH_1 + SNAP_B + SNAP_D + 3, WIDTH_1 + SNAP_B + WIDTH_3 + 3, WIDTH_4 + 7);
-    AssertLayer(self.layer4, WIDTH_1 + SNAP_B + SNAP_D + 3, WIDTH_1 + WIDTH_2 + WIDTH_3 - 6, WIDTH_4 + 7);
-
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2 + 3, SNAP_B + WIDTH_2 + 3, WIDTH_3 + WIDTH_4 + 7);
+    AssertLayer(self.layer4, SNAP_B + WIDTH_2 + SNAP_D + 3, SNAP_B + WIDTH_2 + WIDTH_3 + 3, WIDTH_4 + 7);
+   
     [self.model endMove:ctx method:FRSnappingPointsMethodExpand];
     AssertInitialPositions;
 
-    [self.model moveBy:-20 touched:self.layer2];
+    // OK until here!
+    ctx = [self.model moveBy:-20 touched:self.layer2];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 15, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 15, WIDTH_1 + WIDTH_2 - 15, WIDTH_3 + WIDTH_4 + 15);
@@ -411,13 +410,13 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + SNAP_B, WIDTH_1 + SNAP_B, WIDTH_3 + WIDTH_4 + 10);
     AssertLayer(self.layer4, WIDTH_1 + SNAP_B + SNAP_D, WIDTH_1 + SNAP_B + WIDTH_3, WIDTH_4 + 10);
 
-    [self.model moveBy:10 touched:self.layer2];
+    ctx = [self.model moveBy:10 touched:self.layer2];
     AssertInitialPositions;
 
     [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
     AssertInitialPositions;
 
-    [self.model moveBy:-5 touched:self.layer3];
+    ctx = [self.model moveBy:-5 touched:self.layer3];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 5, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 5, WIDTH_1 + WIDTH_2 - 5, WIDTH_3 + WIDTH_4 + 5);
@@ -426,7 +425,7 @@ right snap prio               7                                     8
     [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
     AssertInitialPositions;
 
-    [self.model moveBy:-20 touched:self.layer3];
+    ctx = [self.model moveBy:-20 touched:self.layer3];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 15, WIDTH_1 + WIDTH_2 - 15, WIDTH_3 + WIDTH_4 + 15);
@@ -438,7 +437,7 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 10, WIDTH_1 + WIDTH_2 - 10, WIDTH_3 + WIDTH_4 + 10);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 10, WIDTH_1 + WIDTH_2 + WIDTH_3 - 10, WIDTH_4 + 10);
 
-    [self.model moveBy:-20 touched:self.layer3];
+    ctx = [self.model moveBy:-20 touched:self.layer3];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 20, WIDTH_1 + WIDTH_2 - 20, WIDTH_3 + WIDTH_4 + 20);
@@ -450,14 +449,14 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 10, WIDTH_1 + WIDTH_2 - 10, WIDTH_3 + WIDTH_4 + 10);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 10, WIDTH_1 + WIDTH_2 + WIDTH_3 - 10, WIDTH_4 + 10);
 
-    [self.model moveBy:-20 touched:self.layer3];
+    ctx = [self.model moveBy:-20 touched:self.layer3];
     [self.model endMove:ctx method:FRSnappingPointsMethodExpand]; // snapping points method does not matter here
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 10, WIDTH_1 + WIDTH_2 - 10, WIDTH_3 + WIDTH_4 + 10);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 10, WIDTH_1 + WIDTH_2 + WIDTH_3 - 10, WIDTH_4 + 10);
 
-    [self.model moveBy:20 touched:self.layer2];
+    ctx = [self.model moveBy:20 touched:self.layer2];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 + 5, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 + 5, WIDTH_1 + WIDTH_2 + 5, WIDTH_3 + WIDTH_4);
@@ -468,7 +467,7 @@ right snap prio               7                                     8
 
     self.layer3.layeredNavigationItem.resizeOnMove = NO;
     self.layer4.layeredNavigationItem.resizeOnMove = NO;
-    [self.model moveBy:-10 touched:self.layer2];
+    ctx = [self.model moveBy:-10 touched:self.layer2];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 10, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 10, WIDTH_1 + WIDTH_2 - 10, WIDTH_3 + WIDTH_4);

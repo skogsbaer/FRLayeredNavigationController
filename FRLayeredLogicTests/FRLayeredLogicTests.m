@@ -456,11 +456,10 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 10, WIDTH_1 + WIDTH_2 - 10, WIDTH_3 + WIDTH_4 + 10);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 10, WIDTH_1 + WIDTH_2 + WIDTH_3 - 10, WIDTH_4 + 10);
 
-    // OK until here!
     ctx = [self.model moveBy:20 touched:self.layer2];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 + 5, WIDTH_2);
-    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 + 5, WIDTH_1 + WIDTH_2 + 5, WIDTH_3 + WIDTH_4);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 + 5, WIDTH_1 + WIDTH_2 + 5, WIDTH_3 + WIDTH_4 - 5);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D + 5, WIDTH_1 + WIDTH_2 + WIDTH_3 + 5, WIDTH_4);
 
     [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
@@ -473,7 +472,6 @@ right snap prio               7                                     8
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 10, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 10, WIDTH_1 + WIDTH_2 - 10, WIDTH_3 + WIDTH_4);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 10, WIDTH_1 + WIDTH_2 + WIDTH_3 - 10, WIDTH_4);
-
 }
 
 @end

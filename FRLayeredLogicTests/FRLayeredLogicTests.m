@@ -367,7 +367,7 @@ right snap prio               7                                     8
     [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
     AssertInitialPositions;
 
-    [self.model moveBy:-5 touched:self.layer2];
+    ctx = [self.model moveBy:-5 touched:self.layer2];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 5, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 5, WIDTH_1 + WIDTH_2 - 5, WIDTH_3 + WIDTH_4 + 5);
@@ -376,7 +376,7 @@ right snap prio               7                                     8
     [self.model endMove:ctx method:FRSnappingPointsMethodNearest]; // nearest prefers right over left
     AssertInitialPositions;
 
-    [self.model moveBy:-6 touched:self.layer2];
+    ctx = [self.model moveBy:-6 touched:self.layer2];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 6, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 6, WIDTH_1 + WIDTH_2 - 6, WIDTH_3 + WIDTH_4 + 6);

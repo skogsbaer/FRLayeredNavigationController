@@ -689,7 +689,7 @@
     }
 }
 // 0 <= index < self.viewControllers.count
-- (void)moveRightBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
+- (FRLayerMoveContext *)moveRightBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
 {
     NSArray *vcs = self.viewControllers;
     CGFloat realXTrans;
@@ -708,13 +708,15 @@
     for (NSInteger i = index; i < vcs.count; i++) {
         [self moveLayer:i adjustInitialViewPosition:(i > index) xTrans:realXTrans];
     }
+    return [[FRLayerMoveContext alloc] initWithSnappingIndex:index];
 }
 
 // 0 <= index < self.viewControllers.count
-- (void)moveLeftBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
+- (FRLayerMoveContext *)moveLeftBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
 {
     CGFloat remXTrans = xTrans;
-    for (NSInteger i = index; i >= 0; i--) {
+    NSInteger snappingIndex = index;
+    for (NSInteger i = index; i >= 0 && remXTrans > 0; i--) {
         FRLayerController *ctrl = [self.viewControllers objectAtIndex:i];
         FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
         CGFloat transPossible = MAX(0, item.currentViewPosition.x - item.initialViewPosition.x);
@@ -727,7 +729,9 @@
         for (NSInteger j = i; j < self.viewControllers.count; j++) {
             [self moveLayer:j adjustInitialViewPosition:(j > i) xTrans:-transHere];
         }
+        snappingIndex = i;
     }
+    return [[FRLayerMoveContext alloc] initWithSnappingIndex:snappingIndex];
 }
 
 - (FRLayerMoveContext *)moveBy:(CGFloat)xTrans touched:(FRLayerController *)ctrl {
@@ -735,11 +739,12 @@
     if (index == NSNotFound) {
         return nil;
     } else if (xTrans < 0) {
-        [self moveLeftBy:-xTrans touchedIndex:index];
+        return [self moveLeftBy:-xTrans touchedIndex:index];
     } else if (xTrans > 0) {
-        [self moveRightBy:xTrans touchedIndex:index];
+        return [self moveRightBy:xTrans touchedIndex:index];
+    } else {
+        return nil;
     }
-    return [[FRLayerMoveContext alloc] initWithSnappingIndex:index];
 }
 
 - (void)endMove:(FRLayerMoveContext *)ctx method:(FRSnappingPointsMethod)method {

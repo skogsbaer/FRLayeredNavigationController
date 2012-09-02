@@ -31,6 +31,7 @@
 #import "Utils.h"
 
 @class FRLayerModel;
+@class FRLayerMoveContext;
 @class FRLayeredNavigationItem;
 
 /**
@@ -46,6 +47,7 @@
     UIViewController * __weak _outOfBoundsViewController;
     UIView * __weak _dropNotificationView;
     FRLayerModel *_model;
+    FRLayerMoveContext *_currentMoveContext;
     BOOL _userInteractionEnabled;
     BOOL _dropLayersWhenPulledRight;
 }

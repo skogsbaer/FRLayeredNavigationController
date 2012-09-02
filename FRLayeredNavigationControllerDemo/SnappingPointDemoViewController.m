@@ -43,10 +43,12 @@
                 [navItem addSnappingPointX:150 priority:4];
                 navItem.rightMarginSnappingPriority = 8;
                 navItem.resizePriority = 6;
+                navItem.resizeOnMove = YES;
                 break;
             case 3:
                 navItem.width = 270;
                 navItem.resizePriority = 9;
+                navItem.resizeOnMove = YES;
                 break;
             default:
                 break;

@@ -20,7 +20,8 @@ typedef enum {
 
 @interface FRLayerMoveContext : NSObject {
     @private
-    NSInteger _index;
+    NSInteger _startIndex;
+    NSInteger _snappingIndex;
 }
 @end
 
@@ -36,7 +37,9 @@ typedef enum {
 - (CGFloat)pushLayerController:(FRLayerController *)ctrl;
 - (FRLayerController *)popLayerController;
 - (void)setWidth:(CGFloat)width;
+- (FRLayerMoveContext *)initialMoveContextFor:(CGPoint)ctrl;
 - (FRLayerMoveContext *)moveBy:(CGFloat)xTrans touched:(FRLayerController *)ctrl;
+- (FRLayerMoveContext *)continueMove:(FRLayerMoveContext *)ctx by:(CGFloat)xTrans;
 - (void)endMove:(FRLayerMoveContext *)ctx method:(FRSnappingPointsMethod)method;
 - (BOOL)areViewControllersMaximallyCompressed;
 

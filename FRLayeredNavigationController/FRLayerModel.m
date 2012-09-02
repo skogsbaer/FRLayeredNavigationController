@@ -15,27 +15,43 @@
 #pragma mark Helper classes
 
 @interface FRLayerMoveContext ()
-- (id)initWithSnappingIndex:(NSInteger)i;
+- (id)initWithStartIndex:(NSInteger)i;
+- (FRLayerMoveContext *)copyWithSnappingIndex:(NSInteger)i;
+- (NSInteger)startIndex;
 - (NSInteger)snappingIndex;
 @end
 
 @implementation FRLayerMoveContext
 
-- (id)initWithSnappingIndex:(NSInteger)i {
+- (id)initWithStartIndex:(NSInteger)i {
     if ((self = [super init])) {
-        self->_index = i;
+        self->_startIndex = i;
+        self->_snappingIndex = i;
     }
     return self;
 }
 
+- (NSInteger)startIndex
+{
+    return self->_startIndex;
+}
+
 - (NSInteger)snappingIndex
 {
-    return self->_index;
+    return self->_snappingIndex;
+}
+
+- (FRLayerMoveContext *)copyWithSnappingIndex:(NSInteger)i
+{
+    FRLayerMoveContext *ctx = [[FRLayerMoveContext alloc] initWithStartIndex:self->_startIndex];
+    ctx->_snappingIndex = i;
+    return ctx;
 }
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"FRLayerMoveContext { snappingIndex = %d }", self->_index];
+    return [NSString stringWithFormat:@"FRLayerMoveContext { startIndex=%d, snappingIndex=%d }",
+            self->_startIndex, self->_snappingIndex];
 }
 @end
 
@@ -689,10 +705,11 @@
     }
 }
 // 0 <= index < self.viewControllers.count
-- (FRLayerMoveContext *)moveRightBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
+- (FRLayerMoveContext *)move:(FRLayerMoveContext *)ctx rightBy:(CGFloat)xTrans
 {
     NSArray *vcs = self.viewControllers;
     CGFloat realXTrans;
+    NSInteger index = ctx.startIndex;
     if (index == 0) {
         realXTrans = xTrans / 2;
     } else {
@@ -708,13 +725,14 @@
     for (NSInteger i = index; i < vcs.count; i++) {
         [self moveLayer:i adjustInitialViewPosition:(i > index) xTrans:realXTrans];
     }
-    return [[FRLayerMoveContext alloc] initWithSnappingIndex:index];
+    return [ctx copyWithSnappingIndex:index];
 }
 
 // 0 <= index < self.viewControllers.count
-- (FRLayerMoveContext *)moveLeftBy:(CGFloat)xTrans touchedIndex:(NSInteger)index
+- (FRLayerMoveContext *)move:(FRLayerMoveContext *)ctx leftBy:(CGFloat)xTrans
 {
     CGFloat remXTrans = xTrans;
+    NSInteger index = ctx.startIndex;
     NSInteger snappingIndex = index;
     for (NSInteger i = index; i >= 0 && remXTrans > 0; i--) {
         FRLayerController *ctrl = [self.viewControllers objectAtIndex:i];
@@ -733,23 +751,58 @@
         }
         snappingIndex = i;
     }
-    return [[FRLayerMoveContext alloc] initWithSnappingIndex:snappingIndex];
+    return [ctx copyWithSnappingIndex:snappingIndex];
 }
 
-- (FRLayerMoveContext *)moveBy:(CGFloat)xTrans touched:(FRLayerController *)ctrl {
+- (FRLayerMoveContext *)move:(FRLayerMoveContext *)ctx by:(CGFloat)xTrans {
+    if (xTrans < 0) {
+        return [self move:ctx leftBy:-xTrans];
+    } else if (xTrans > 0) {
+        return [self move:ctx rightBy:xTrans];
+    } else {
+        return ctx;
+    }
+}
+
+- (FRLayerMoveContext *)initialMoveContextFor:(CGPoint)p
+{
+    NSArray *vcs = self.viewControllers;
+    for (NSInteger i = vcs.count - 1; i >= 0; i--) {
+        FRLayerController *ctrl = [vcs objectAtIndex:i];
+        FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+        CGFloat itemX = item.currentViewPosition.x;
+        if (p.x >= itemX && p.x <= itemX + item.currentWidth) {
+            return [[FRLayerMoveContext alloc] initWithStartIndex:i];
+        }
+    }
+    return nil;
+
+}
+
+- (FRLayerMoveContext *)moveBy:(CGFloat)xTrans touched:(FRLayerController *)ctrl
+{
     NSInteger index = [self.viewControllers indexOfObject:ctrl];
     if (index == NSNotFound) {
         return nil;
-    } else if (xTrans < 0) {
-        return [self moveLeftBy:-xTrans touchedIndex:index];
-    } else if (xTrans > 0) {
-        return [self moveRightBy:xTrans touchedIndex:index];
     } else {
+        FRLayerMoveContext *ctx = [[FRLayerMoveContext alloc] initWithStartIndex:index];
+        return [self move:ctx by:xTrans];
+    }
+}
+
+- (FRLayerMoveContext *)continueMove:(FRLayerMoveContext *)ctx by:(CGFloat)xTrans
+{
+    if (ctx == nil) {
         return nil;
+    } else {
+        return [self move:ctx by:xTrans];
     }
 }
 
 - (void)endMove:(FRLayerMoveContext *)ctx method:(FRSnappingPointsMethod)method {
+    if (ctx == nil) {
+        return;
+    }
     NSInteger index = ctx.snappingIndex;
     NSArray *vcs = self.viewControllers;
     if (index < 0 || index >= vcs.count || ctx == nil) {

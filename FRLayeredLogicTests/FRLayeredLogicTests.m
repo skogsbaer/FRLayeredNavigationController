@@ -494,13 +494,13 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, WIDTH_3 + WIDTH_4);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + WIDTH_3 - 10, WIDTH_4 + 10);
   
-    ctx = [self.model moveBy:-10 touched:self.layer4];
+    ctx = [self.model continueMove:ctx by:-10];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, WIDTH_3 + WIDTH_4);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_4 + 20);
 
-    ctx = [self.model moveBy:-5 touched:self.layer4];
+    ctx = [self.model continueMove:ctx by:-5];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 5, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 5, WIDTH_1 + WIDTH_2 - 5, WIDTH_3 + WIDTH_4 + 5);
@@ -551,4 +551,16 @@ right snap prio               7                                     8
     AssertLayer(self.layer4, SNAP_B + WIDTH_2 + SNAP_D, SNAP_B + WIDTH_2 + SNAP_D, 420 - SNAP_B - WIDTH_2 - SNAP_D);
 }
 
+- (void)testMovementBug1
+{
+    [self.model setWidth:420];
+    [self.model pushLayerController:self.layer1];
+    [self.model pushLayerController:self.layer2];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    FRLayerMoveContext *ctx = [self.model moveBy:-70 touched:self.layer2];
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+}
 @end

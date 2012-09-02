@@ -720,14 +720,16 @@
         FRLayerController *ctrl = [self.viewControllers objectAtIndex:i];
         FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
         CGFloat transPossible = MAX(0, item.currentViewPosition.x - item.initialViewPosition.x);
-        CGFloat transHere = MIN(xTrans, transPossible);
+        CGFloat transHere = MIN(remXTrans, transPossible);
         remXTrans = remXTrans - transHere;
         if (i == 0 && remXTrans > 0) {
             // do an out-of-bounds transition, half moving speed
             transHere += remXTrans / 2;
         }
-        for (NSInteger j = i; j < self.viewControllers.count; j++) {
-            [self moveLayer:j adjustInitialViewPosition:(j > i) xTrans:-transHere];
+        if (transHere > 0) {
+            for (NSInteger j = i; j < self.viewControllers.count; j++) {
+                [self moveLayer:j adjustInitialViewPosition:(j > i) xTrans:-transHere];
+            }
         }
         snappingIndex = i;
     }

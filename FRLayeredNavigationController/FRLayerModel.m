@@ -15,22 +15,27 @@
 #pragma mark Helper classes
 
 @interface FRLayerMoveContext ()
-- (id)initWithIndex:(NSInteger)i;
-- (NSInteger)index;
+- (id)initWithSnappingIndex:(NSInteger)i;
+- (NSInteger)snappingIndex;
 @end
 
 @implementation FRLayerMoveContext
 
-- (id)initWithIndex:(NSInteger)i {
+- (id)initWithSnappingIndex:(NSInteger)i {
     if ((self = [super init])) {
         self->_index = i;
     }
     return self;
 }
 
-- (NSInteger)index
+- (NSInteger)snappingIndex
 {
     return self->_index;
+}
+
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"FRLayerMoveContext { snappingIndex = %d }", self->_index];
 }
 @end
 
@@ -734,11 +739,11 @@
     } else if (xTrans > 0) {
         [self moveRightBy:xTrans touchedIndex:index];
     }
-    return [[FRLayerMoveContext alloc] initWithIndex:index];
+    return [[FRLayerMoveContext alloc] initWithSnappingIndex:index];
 }
 
 - (void)endMove:(FRLayerMoveContext *)ctx method:(FRSnappingPointsMethod)method {
-    NSInteger index = ctx.index;
+    NSInteger index = ctx.snappingIndex;
     NSArray *vcs = self.viewControllers;
     if (index < 0 || index >= vcs.count || ctx == nil) {
         return; // just a safety net

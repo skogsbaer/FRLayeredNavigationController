@@ -213,8 +213,10 @@
                 [self popToRootViewControllerAnimated:YES];
             }
 
-            [UIView animateWithDuration:0.2 animations:^{
+            [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionLayoutSubviews   animations:^{
                 [self moveToSnappingPointsWithGestureRecognizer:gestureRecognizer];
+            } completion:^(BOOL finished) {
+                // do nothing
             }];
 
             self.currentMoveContext = nil;

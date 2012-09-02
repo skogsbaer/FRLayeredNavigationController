@@ -689,19 +689,14 @@
 {
     FRLayerController *ctrl = [self.viewControllers objectAtIndex:index];
     FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
-    if (item.resizeOnMove && ctrl.maximumWidth) {
-        CGFloat rightX = item.currentViewPosition.x + item.width;
-        CGFloat widthDiff;
-        if (rightX > self->_width) {
-            widthDiff = MIN(rightX - self->_width, item.currentWidth - item.width);
-        } else {
-            widthDiff = MIN(xTrans, item.currentWidth - item.width);
-        }
-        item.currentWidth = item.currentWidth - widthDiff;
-    }
     item.currentViewPosition = FRPointTransX(item.currentViewPosition, xTrans);
     if (adjustInitPos) {
         item.initialViewPosition = FRPointTransX(item.initialViewPosition, xTrans);
+    }
+    if (item.resizeOnMove && ctrl.maximumWidth) {
+        CGFloat x = item.currentViewPosition.x;
+        CGFloat newWidth = MAX(item.width, MAX(0, self->_width - x));
+        item.currentWidth = newWidth;
     }
 }
 // 0 <= index < self.viewControllers.count

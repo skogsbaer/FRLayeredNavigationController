@@ -674,7 +674,7 @@
     FRLayerController *ctrl = [self.viewControllers objectAtIndex:index];
     FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
     if (item.resizeOnMove && ctrl.maximumWidth) {
-        CGFloat rightX = item.currentViewPosition.x + item.currentWidth;
+        CGFloat rightX = item.currentViewPosition.x + item.width;
         CGFloat widthDiff;
         if (rightX > self->_width) {
             widthDiff = MIN(rightX - self->_width, item.currentWidth - item.width);
@@ -698,7 +698,7 @@
     } else {
         FRLayerController *below = [vcs objectAtIndex:(index - 1)];
         FRLayeredNavigationItem *itemBelow = below.layeredNavigationItem;
-        CGFloat rightBound = itemBelow.currentViewPosition.x + itemBelow.currentWidth;
+        CGFloat rightBound = itemBelow.currentViewPosition.x + itemBelow.width;
         FRLayerController *ctrl = [vcs objectAtIndex:index];
         CGFloat curX = ctrl.layeredNavigationItem.currentViewPosition.x;
         CGFloat fullSpeedX = MIN(xTrans, MAX(0, rightBound - curX));
@@ -763,7 +763,7 @@
     } else {
         FRLayerController *below = [vcs objectAtIndex:(index - 1)];
         FRLayeredNavigationItem *itemBelow = below.layeredNavigationItem;
-        rightX = itemBelow.currentViewPosition.x + itemBelow.currentWidth;
+        rightX = itemBelow.currentViewPosition.x + itemBelow.width;
     }
     CGFloat targetX;
     switch (method) {

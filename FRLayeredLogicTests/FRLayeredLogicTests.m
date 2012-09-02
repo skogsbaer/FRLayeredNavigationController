@@ -506,14 +506,41 @@ right snap prio               7                                     8
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 5, WIDTH_1 + WIDTH_2 - 5, WIDTH_3 + WIDTH_4 + 5);
     AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 5, WIDTH_1 + WIDTH_2 + SNAP_D - 5, WIDTH_4 + 25);
     
+    [self.model endMove:ctx method:FRSnappingPointsMethodCompact];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, WIDTH_3 + WIDTH_4 + 10);
+    AssertLayer(self.layer4, SNAP_B + WIDTH_2 + SNAP_D, SNAP_B + WIDTH_2 + SNAP_D, WIDTH_4 + 30);
+
+    ctx = [self.model moveBy:10 touched:self.layer2];
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    ctx = [self.model moveBy:15 touched:self.layer4];
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    AssertInitialPositions;
+    
     // OK until here!
-    /*
+    
+    // do the -10, -10, -5 movements in one step
     ctx = [self.model moveBy:-25 touched:self.layer4];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, WIDTH_1 - 5, WIDTH_2);
     AssertLayer(self.layer3, WIDTH_1 + WIDTH_2 - 5, WIDTH_1 + WIDTH_2 - 5, WIDTH_3 + WIDTH_4 + 5);
-    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_4 + 25);
-    */
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D - 5, WIDTH_1 + WIDTH_2 + SNAP_D - 5, WIDTH_4 + 25);
+    
+    [self.model endMove:ctx method:FRSnappingPointsMethodExpand];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    AssertLayer(self.layer3, WIDTH_1 + WIDTH_2, WIDTH_1 + WIDTH_2, WIDTH_3 + WIDTH_4);
+    AssertLayer(self.layer4, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_1 + WIDTH_2 + SNAP_D, WIDTH_4 + 20);
+    
+    ctx = [self.model moveBy:10 touched:self.layer2];
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    ctx = [self.model moveBy:15 touched:self.layer4];
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    AssertInitialPositions;
+    
+    ctx = [self.model moveBy:-40 touched:self.layer4];
+    // write assertions
     
 }
 

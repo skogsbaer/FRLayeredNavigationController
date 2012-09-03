@@ -563,4 +563,47 @@ right snap prio               7                                     8
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
 }
+
+- (void)testLeftRightMovement
+{
+    [self.model setWidth:420];
+    [self.model pushLayerController:self.layer1];
+    [self.model pushLayerController:self.layer2];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+
+    FRLayerMoveContext *ctx = [self.model moveBy:-20 touched:self.layer2];
+    AssertLayer(self.layer1, 0, -5, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B - 5, WIDTH_1 - 15, WIDTH_2);
+    ctx = [self.model continueMove:ctx by:20];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+
+    ctx = [self.model moveBy:-11 touched:self.layer2];
+    ctx = [self.model continueMove:ctx by:40];
+    [self.model endMove:ctx method:FRSnappingPointsMethodCompact];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+
+    ctx = [self.model moveBy:-5 touched:self.layer2];
+    ctx = [self.model continueMove:ctx by:40];
+    [self.model endMove:ctx method:FRSnappingPointsMethodExpand];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+
+    ctx = [self.model moveBy:-20 touched:self.layer2];
+    ctx = [self.model continueMove:ctx by:20];
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+
+    ctx = [self.model moveBy:-20 touched:self.layer2];
+    ctx = [self.model continueMove:ctx by:2];
+    [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+}
 @end

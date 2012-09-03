@@ -18,6 +18,8 @@ typedef enum {
     FRSnappingPointsMethodExpand
 } FRSnappingPointsMethod;
 
+NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method);
+
 @interface FRLayerMoveContext : NSObject {
     @private
     NSInteger _startIndex;

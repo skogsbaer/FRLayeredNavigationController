@@ -295,19 +295,19 @@ right snap prio               7                                     8
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
-    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + WIDTH_3, WIDTH_4 + 70);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4 + 160 - 20);
 
     [self.model setWidth:330];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
-    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + WIDTH_3, WIDTH_4);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4 + 160 - 90);
 
     [self.model setWidth:320];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
-    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + SNAP_D, WIDTH_4 + 10);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4 + 160 - 100);
 }
 
 - (void)testLayerModelChangesExplicitMovements

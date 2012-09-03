@@ -35,8 +35,6 @@
     @private
     FRLayeredNavigationItem *_layeredNavigationItem;
 
-    BOOL _maximumWidth;
-
     FRLayerChromeView *_chromeView;
     UIView *_borderView;
     UIView __weak *_contentView;

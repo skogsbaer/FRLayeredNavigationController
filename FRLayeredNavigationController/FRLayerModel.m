@@ -302,7 +302,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 - (CGFloat)pushLayerController:(FRLayerController *)ctrl {
     FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
     CGFloat neededWidth;
-    BOOL useMaxWidth = ctrl.maximumWidth;
+    BOOL useMaxWidth = item.maximumWidth;
     if (item.width <= 0) {
         if (useMaxWidth) {
             neededWidth = FRLayeredNavigationControllerStandardMiniumWidth;
@@ -469,9 +469,19 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 
 - (void)fillSpace {
     CGFloat w = self->_width;
+    FRLayerController *ctrl = self.topLayerViewController;
+    FRLayeredNavigationItem *item = ctrl.layeredNavigationItem;
+    if (item.maximumWidth) {
+        CGFloat add = w - (item.currentViewPosition.x + item.currentWidth);
+        if (add > 0) {
+            item.currentWidth += add;
+        }
+    }
+}
+/*
     for (FRLayerController *lc in self.viewControllers) {
-        if (lc.maximumWidth) {
-            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        if (item.maximumWidth) {
             CGFloat add = w - (item.currentViewPosition.x + item.currentWidth);
             if (add > 0) {
                 item.currentWidth += add;
@@ -479,11 +489,12 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
         }
     }   
 }
+*/
 
 - (void)backToMinimumWidth {
     for (FRLayerController *lc in self.viewControllers) {
-        if (lc.maximumWidth) {
-            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        if (item.maximumWidth) {
             item.currentWidth = (item.width <= 0) ? FRLayeredNavigationControllerStandardMiniumWidth : item.width;
         }
     }
@@ -492,18 +503,20 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 
 #pragma mark Enlarging
 
+/*
 // Returns the space made available. The result is never larger than the space parameter.
 - (CGFloat)enlargeByResizing:(CGFloat)space
 {
     CGFloat before = [self widthOfAllLayers];
     for (FRLayerController *lc in self.viewControllers) {
-        if (lc.maximumWidth) {
-            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        if (item.maximumWidth) {
             item.currentWidth += space;
         }
     }
     return [self widthOfAllLayers] - before;
 }
+*/
 
 // Returns the space made available. The result is never larger than the availableSpace parameter.
 // Returns -1 if no further enlargements possible
@@ -576,7 +589,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
              spaceGained = [self enlargeByMovingToRightMargin:rightMargin
                                                availableSpace:spaceStillAvailable];
          } else {
-             spaceGained = [self enlargeByResizing:spaceStillAvailable];
+             //spaceGained = [self enlargeByResizing:spaceStillAvailable];
          }
          NSAssert(spaceGained <= spaceStillAvailable, @"spaceGained > spaceStillAvailable");
          if (spaceGained < 0) {
@@ -589,11 +602,12 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 
 #pragma mark Shrinking
 
+/*
 - (CGFloat)maxShrinkByResizing {
     CGFloat shrink = -1;
     for (FRLayerController *lc in self.viewControllers) {
-        if (lc.maximumWidth) {
-            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+        if (item.maximumWidth) {
             CGFloat minWidth = MAX(0, item.width);
             CGFloat delta = item.currentWidth - minWidth;
             if (shrink < 0 || shrink > delta) {
@@ -610,14 +624,15 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
     CGFloat f = MIN(space, [self maxShrinkByResizing]);
     if (f > 0) {
         for (FRLayerController *lc in self.viewControllers) {
-            if (lc.maximumWidth) {
-                lc.layeredNavigationItem.currentWidth = f;
+            FRLayeredNavigationItem *item = lc.layeredNavigationItem;
+            if (item.maximumWidth) {
+                item.currentWidth = f;
             }
         }
     }
     return before - [self widthOfAllLayers];
 }
-
+*/
 // Returns the space gained by moving the the given snap point.
 - (CGFloat) shrinkByMovingToSnappingPoint:(CGFloat)snapPointX
                                controller:(FRLayerController *)ctrl
@@ -670,7 +685,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
          } else if ([op.class isSubclassOfClass:FRLayoutOperationRightMargin.class]) {
              // do nothing
          } else {
-             spaceLost = [self shrinkByResizing:spaceNeeded];
+             // spaceLost = [self shrinkByResizing:spaceNeeded];
          }
          spaceNeeded = spaceNeeded - spaceLost;
          if (spaceNeeded <= 0) {
@@ -678,9 +693,9 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
          }
      }];
     // compensate moving to far to the left by resizing
-    if (spaceNeeded < 0) {
-        [self enlargeByResizing:-spaceNeeded];
-    }
+    //if (spaceNeeded < 0) {
+    //    [self enlargeByResizing:-spaceNeeded];
+    //}
 }
 
 # pragma mark Layout
@@ -706,7 +721,8 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
     if (adjustInitPos) {
         item.initialViewPosition = FRPointTransX(item.initialViewPosition, xTrans);
     }
-    if (item.resizeOnMove && ctrl.maximumWidth) {
+    BOOL isTop = (ctrl == self.topLayerViewController);
+    if (isTop && item.resizeOnMove && item.maximumWidth) {
         CGFloat x = item.currentViewPosition.x;
         CGFloat newWidth = MAX(item.width, MAX(0, self->_width - x));
         item.currentWidth = newWidth;
@@ -742,7 +758,8 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
             if (deltaX > 0) {
                 CGFloat xAdjustLower = MIN(deltaX, realXTrans);
                 for (NSInteger i = ctx.snappingIndex; i < ctx.startIndex; i++) {
-                    [self moveLayer:i adjustInitialViewPosition:(i > ctx.snappingIndex) xTrans:xAdjustLower];
+                    [self moveLayer:i adjustInitialViewPosition:(i > ctx.snappingIndex)
+                             xTrans:xAdjustLower];
                 }
                 if (item.initialViewPosition.x <= item.currentViewPosition.x) {
                     snappingIndex = ctx.startIndex;

@@ -112,6 +112,11 @@
               maximumWidth:(BOOL)maxWidth
                   animated:(BOOL)animated;
 
+- (void)pushViewController:(UIViewController *)contentViewController
+                 inFrontOf:(UIViewController *)anchorViewController
+                  animated:(BOOL)animated
+             configuration:(void (^)(FRLayeredNavigationItem *item))configuration;
+
 /**
  * Pushes a view controller onto the stack on top of anchorViewController and updates the display.
  * All view controllers already on top of anchorViewController get popped automatically first.

@@ -39,7 +39,6 @@
 
 @property (nonatomic, readwrite, strong) UIViewController *contentViewController;
 @property (nonatomic, readwrite, strong) FRLayeredNavigationItem *layeredNavigationItem;
-@property (nonatomic, readwrite) BOOL maximumWidth;
 
 @property (nonatomic, strong) FRLayerChromeView *chromeView;
 @property (nonatomic, strong) UIView *borderView;
@@ -54,14 +53,19 @@
 - (id)initWithContentViewController:(UIViewController *)vc maximumWidth:(BOOL)maxWidth
 {
     if ((self = [super init])) {
-        _layeredNavigationItem = [[FRLayeredNavigationItem alloc] init];
-        _layeredNavigationItem.layerController = self;
+        self.layeredNavigationItem = [[FRLayeredNavigationItem alloc] init];
+        self.layeredNavigationItem.maximumWidth = maxWidth;
+        self.layeredNavigationItem.layerController = self;
         _contentViewController = vc;
         [_contentViewController addObserver:self forKeyPath:@"title" options:NSKeyValueObservingOptionNew context:nil];
-        _maximumWidth = maxWidth;
     }
 
     return self;
+}
+
+- (BOOL)maximumWidth
+{
+    return self.layeredNavigationItem.maximumWidth;
 }
 
 - (NSString *)description {

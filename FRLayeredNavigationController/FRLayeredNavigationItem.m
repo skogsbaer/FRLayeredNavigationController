@@ -76,6 +76,7 @@
         self->_hasChrome = YES;
         self->_displayShadow = YES;
         self->_resizeOnMove = NO;
+        self->_maximumWidth = NO;
         self.internalSnappingPoints = [NSMutableSet set];
     }
 
@@ -141,6 +142,7 @@
 @synthesize hasChrome = _hasChrome;
 @synthesize displayShadow = _displayShadow;
 @synthesize resizeOnMove = _resizeOnMove;
+@synthesize maximumWidth = _maximumWidth;
 @synthesize layerController = _layerController;
 @synthesize internalSnappingPoints = _internalSnappingPoints;
 @synthesize name = _name;

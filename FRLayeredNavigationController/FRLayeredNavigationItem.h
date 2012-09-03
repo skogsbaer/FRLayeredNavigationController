@@ -66,6 +66,7 @@
     BOOL _hasChrome;
     BOOL _displayShadow;
     BOOL _resizeOnMove;
+    BOOL _maximumWidth;
     NSMutableSet *_internalSnappingPoints;
     FRLayerController __weak * _layerController;
     NSString *_name;
@@ -97,6 +98,8 @@
  * defines the minimum width of the layer.
  */
 @property (nonatomic, readwrite) CGFloat width;
+
+@property (nonatomic, readwrite) BOOL maximumWidth;
 
 @property (nonatomic, readwrite) NSInteger resizePriority;
 

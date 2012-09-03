@@ -213,7 +213,7 @@
                 [self popToRootViewControllerAnimated:YES];
             }
 
-            [UIView animateWithDuration:0.2 delay:0 options:UIViewAnimationOptionLayoutSubviews   animations:^{
+            [UIView animateWithDuration:0.2 delay:0 options:0/* UIViewAnimationOptionLayoutSubviews */animations:^{
                 [self moveToSnappingPointsWithGestureRecognizer:gestureRecognizer];
             } completion:^(BOOL finished) {
                 // do nothing
@@ -396,7 +396,7 @@
     if (animated) {
         [UIView animateWithDuration:0.5
                               delay:0
-                            options: UIViewAnimationCurveLinear
+                            options:(UIViewAnimationCurveLinear/* | UIViewAnimationOptionLayoutSubviews */)
                          animations:^{
                              vc.view.frame = goAwayFrame;
                          }
@@ -430,6 +430,18 @@
 - (void)popToRootViewControllerAnimated:(BOOL)animated
 {
     [self popToViewController:self.model.rootLayerViewController animated:animated];
+}
+
+- (void)pushViewController:(UIViewController *)contentViewController
+                 inFrontOf:(UIViewController *)anchorViewController
+                  animated:(BOOL)animated
+             configuration:(void (^)(FRLayeredNavigationItem *item))configuration
+{
+    [self pushViewController:contentViewController
+                   inFrontOf:anchorViewController
+                maximumWidth:NO
+                    animated:animated
+               configuration:configuration];
 }
 
 - (void)pushViewController:(UIViewController *)contentViewController
@@ -488,7 +500,7 @@
     if(animated) {
         [UIView animateWithDuration:0.5
                               delay:0
-                            options: UIViewAnimationCurveEaseOut
+                            options:(UIViewAnimationCurveEaseOut/* | UIViewAnimationOptionLayoutSubviews */)
                          animations:^{
                              doNewFrameMove();
                          }

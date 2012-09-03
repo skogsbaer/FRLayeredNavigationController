@@ -295,19 +295,19 @@ right snap prio               7                                     8
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
-    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4 + 160 - 20);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + WIDTH_3, WIDTH_4 + 90 - 20);
 
     [self.model setWidth:330];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
-    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4 + 160 - 90);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + WIDTH_3, WIDTH_4);
 
     [self.model setWidth:320];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
     AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, WIDTH_3);
-    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_C, SNAP_A + WIDTH_2 + SNAP_C, WIDTH_4 + 160 - 100);
+    AssertLayer(self.layer4, SNAP_A + WIDTH_2 + SNAP_D, SNAP_A + WIDTH_2 + SNAP_D, WIDTH_4 + 10);
 }
 
 - (void)testLayerModelChangesExplicitMovements
@@ -605,5 +605,17 @@ right snap prio               7                                     8
     [self.model endMove:ctx method:FRSnappingPointsMethodNearest];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+}
+
+- (void)testResizeBug1
+{
+    [self.model setWidth:310];
+    self.layer3.layeredNavigationItem.resizePriority = 2;
+    [self.model pushLayerController:self.layer1];
+    [self.model pushLayerController:self.layer2];
+    [self.model pushLayerController:self.layer3];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, 100);
 }
 @end

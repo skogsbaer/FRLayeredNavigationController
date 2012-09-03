@@ -86,10 +86,11 @@
 - (NSString *)description {
     return [NSString stringWithFormat:@"FRLayeredNavigationItem { name=%@, initialViewPosition=%@, "
             @"currentViewPosition=%@, width=%f, currentWidth=%f, nextItemDistance=%f, title=%@, hasChrome=%d, "
-            @"displayShadow=%d, snappingPoints=%@",
+            @"displayShadow=%d, snappingPoints=%@, resizeOnMove=%d, maximumWidth=%d, resizePriority=%d }",
             self.name, NSStringFromCGPoint(self.initialViewPosition), NSStringFromCGPoint(self.currentViewPosition),
             self.width, self.currentWidth, self.nextItemDistance, self.title,
-            self.hasChrome, self.displayShadow, self.internalSnappingPoints];
+            self.hasChrome, self.displayShadow, self.internalSnappingPoints, self.resizeOnMove,
+            self.maximumWidth, self.resizePriority];
 }
 
 - (void)setLeftBarButtonItem:(UIBarButtonItem *)leftBarButtonItem

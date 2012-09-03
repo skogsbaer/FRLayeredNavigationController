@@ -321,6 +321,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
     } else {
         [self backToMinimumWidth];
         CGFloat rightX = [self widthOfAllLayers];
+        // FIXME: take resize priorities into account, write test!
         item.currentViewPosition = FRPointSetX(item.currentViewPosition, rightX);
         item.initialViewPosition = FRPointSetX(item.initialViewPosition, rightX);
         FRLayerController *oldTop = [self topLayerViewController];
@@ -401,10 +402,6 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
                                                                              nextIndex:nextIndex
                                                                     explicitSnapPointX:maxSnapPointX];
         [arr addObject:op];
-        if (i == self.viewControllers.count - 1) {
-            op = [[FRLayoutOperationResize alloc] initWithPriority:item.resizePriority];
-            [arr addObject:op];
-        }
     }
     NSArray *sorted = [arr sortedArrayUsingComparator:^(FRLayoutOperation *op1, FRLayoutOperation *op2) {
         NSInteger p1 = op1.priority;
@@ -478,18 +475,6 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
         }
     }
 }
-/*
-    for (FRLayerController *lc in self.viewControllers) {
-        FRLayeredNavigationItem *item = lc.layeredNavigationItem;
-        if (item.maximumWidth) {
-            CGFloat add = w - (item.currentViewPosition.x + item.currentWidth);
-            if (add > 0) {
-                item.currentWidth += add;
-            }
-        }
-    }   
-}
-*/
 
 - (void)backToMinimumWidth {
     for (FRLayerController *lc in self.viewControllers) {
@@ -502,21 +487,6 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 
 
 #pragma mark Enlarging
-
-/*
-// Returns the space made available. The result is never larger than the space parameter.
-- (CGFloat)enlargeByResizing:(CGFloat)space
-{
-    CGFloat before = [self widthOfAllLayers];
-    for (FRLayerController *lc in self.viewControllers) {
-        FRLayeredNavigationItem *item = lc.layeredNavigationItem;
-        if (item.maximumWidth) {
-            item.currentWidth += space;
-        }
-    }
-    return [self widthOfAllLayers] - before;
-}
-*/
 
 // Returns the space made available. The result is never larger than the availableSpace parameter.
 // Returns -1 if no further enlargements possible
@@ -578,7 +548,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
     [self enumerateSnappingPointsAsc:YES block:^(FRLayoutOperation *op,
                                                  BOOL *stop)
      {
-         if (topMaxWidth && op.priority >= topPriority) {
+         if (topMaxWidth && op.priority > topPriority) {
              *stop = YES;
          } else {
              CGFloat spaceGained = -1;
@@ -641,16 +611,14 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 }
 
 - (void)shrinkBy:(CGFloat)space {
-    if (space <= 0) {
-        return;
-    }
     BOOL topMaxWidth = self.topLayerViewController.layeredNavigationItem.maximumWidth;
     NSInteger topPriority = self.topLayerViewController.layeredNavigationItem.resizePriority;
     __block CGFloat spaceNeeded = space;
     [self enumerateSnappingPointsAsc:NO block:^(FRLayoutOperation *op,
                                                  BOOL *stop)
      {
-         if (spaceNeeded <= 0 && (!topMaxWidth || op.priority < topPriority)) {
+         BOOL stopByPrio = (!topMaxWidth || op.priority <= topPriority);
+         if (spaceNeeded <= 0 && stopByPrio) {
              *stop = YES;
          } else {
              if ([op.class isSubclassOfClass:FRLayoutOperationSnappingPoint.class]) {
@@ -660,7 +628,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
                                                                nextIndex:snapOp.nextIndex
                                                              spaceNeeded:spaceNeeded];
                  spaceNeeded = spaceNeeded - spaceLost;
-                 if (spaceNeeded <= 0 && (!topMaxWidth || op.priority < topPriority)) {
+                 if (spaceNeeded <= 0 && stopByPrio) {
                      *stop = YES;
                  }
              }
@@ -675,10 +643,11 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
     CGFloat curWidth = [self widthOfAllLayers];
     if (curWidth < self->_width) {
         [self enlargeBy:(self->_width - curWidth)];
-    } else if (self->_width < curWidth) {
+    } else {
         [self shrinkBy:(curWidth - self->_width)];
     }
     [self fillSpace];
+    FRDLOG(@"New layered layout: %@", self.viewControllers);
 }
 
 #pragma mark Moving
@@ -791,14 +760,14 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
             break;
         }
     }
-    FRDLOG(@"starting move %@ for point %@", res, NSStringFromCGPoint(p));
+    //FRDLOG(@"starting move %@ for point %@", res, NSStringFromCGPoint(p));
     return res;
 
 }
 
 - (FRLayerMoveContext *)moveBy:(CGFloat)xTrans touched:(FRLayerController *)ctrl
 {
-    FRDLOG(@"starting move for %@ by %.1f", ctrl, xTrans);
+    //FRDLOG(@"starting move for %@ by %.1f", ctrl, xTrans);
     NSInteger index = [self.viewControllers indexOfObject:ctrl];
     if (index == NSNotFound) {
         return nil;
@@ -810,7 +779,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 
 - (FRLayerMoveContext *)continueMove:(FRLayerMoveContext *)ctx by:(CGFloat)xTrans
 {
-    FRDLOG(@"continuing move %@ by %.1f", ctx, xTrans);
+    //FRDLOG(@"continuing move %@ by %.1f", ctx, xTrans);
     if (ctx == nil) {
         return nil;
     } else {
@@ -820,7 +789,7 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
 
 - (void)endMove:(FRLayerMoveContext *)ctx method:(FRSnappingPointsMethod)method
 {
-    FRDLOG(@"finishing move %@ with methods %@", ctx, NSStringFromFRSnappingPointsMethod(method));
+    //FRDLOG(@"finishing move %@ with methods %@", ctx, NSStringFromFRSnappingPointsMethod(method));
     if (ctx == nil) {
         return;
     }

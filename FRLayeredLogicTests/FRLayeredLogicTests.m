@@ -613,9 +613,24 @@ right snap prio               7                                     8
     self.layer3.layeredNavigationItem.resizePriority = 2;
     [self.model pushLayerController:self.layer1];
     [self.model pushLayerController:self.layer2];
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
     [self.model pushLayerController:self.layer3];
     AssertLayer(self.layer1, 0, 0, WIDTH_1);
     AssertLayer(self.layer2, SNAP_B, SNAP_B, WIDTH_2);
     AssertLayer(self.layer3, SNAP_B + WIDTH_2, SNAP_B + WIDTH_2, 100);
 }
+
+- (void)testResizeBug2
+{
+    [self.model setWidth:310];
+    self.layer3.layeredNavigationItem.resizePriority = 0;
+    [self.model pushLayerController:self.layer1];
+    [self.model pushLayerController:self.layer2];
+    AssertLayer(self.layer2, SNAP_B, WIDTH_1, WIDTH_2);
+    [self.model pushLayerController:self.layer3];
+    AssertLayer(self.layer1, 0, 0, WIDTH_1);
+    AssertLayer(self.layer2, SNAP_A, SNAP_A, WIDTH_2);
+    AssertLayer(self.layer3, SNAP_A + WIDTH_2, SNAP_A + WIDTH_2, 180);
+}
+
 @end

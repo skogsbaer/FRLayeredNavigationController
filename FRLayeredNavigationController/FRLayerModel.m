@@ -322,6 +322,9 @@ NSString *NSStringFromFRSnappingPointsMethod(FRSnappingPointsMethod method)
         [self backToMinimumWidth];
         CGFloat rightX = [self widthOfAllLayers];
         // FIXME: take resize priorities into account, write test!
+        // "Allgemeine Chirurgie 11" -> Ahorn Klaus -> Radiologie -> "US Sono Abdomen" -> Sono Abdomen
+        // -> 1. Bild antippen
+        // Frage: warum öffnet sich die Liste der Bilder und das 1. Bild nebeneinander???
         item.currentViewPosition = FRPointSetX(item.currentViewPosition, rightX);
         item.initialViewPosition = FRPointSetX(item.initialViewPosition, rightX);
         FRLayerController *oldTop = [self topLayerViewController];
